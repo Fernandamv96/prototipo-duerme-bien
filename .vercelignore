@@ -1,0 +1,6 @@
+tests/
+db.sqlite3
+staticfiles/
+.pytest_cache/
+htmlcov/
+.coverage

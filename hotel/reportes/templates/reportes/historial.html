@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Reportes</span>
+<h1 class="db-title" data-split>Historial de ocupación</h1>
+<p class="db-subtitle">Filtre por rango de fechas o por número de habitación.</p>
+<form class="db-card p-3 mb-4 row g-2 mx-0 align-items-end db-reveal" method="get" action="{% url 'reportes:historial' %}">
+  <div class="col-md-3"><label class="form-label" for="f-desde">Desde</label><input class="form-control" id="f-desde" type="date" name="desde" value="{{ desde }}"></div>
+  <div class="col-md-3"><label class="form-label" for="f-hasta">Hasta</label><input class="form-control" id="f-hasta" type="date" name="hasta" value="{{ hasta }}"></div>
+  <div class="col-md-3"><label class="form-label" for="f-hab">Habitación</label><input class="form-control" id="f-hab" name="habitacion" placeholder="N.º de habitación" value="{{ habitacion }}"></div>
+  <div class="col-md-3"><button class="btn btn-outline-primary w-100">Filtrar</button></div>
+</form>
+<div class="db-card db-table-wrap db-reveal">
+<table class="table"><thead><tr><th>Pasajero</th><th>RUT</th><th>Habitación</th><th>Asignación</th><th>Término</th></tr></thead>
+<tbody>
+{% for r in registros %}<tr>
+  <td><strong>{{ r.pasajero.nombre }}</strong></td><td class="db-mono">{{ r.pasajero.rut }}</td><td class="db-room">{{ r.numero_habitacion }}</td>
+  <td class="db-mono">{{ r.fecha_asignacion|date:"d-m-Y H:i" }}</td>
+  <td>{% if r.fecha_termino %}<span class="db-mono">{{ r.fecha_termino|date:"d-m-Y H:i" }}</span>{% else %}<span class="db-badge vacante">En curso</span>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5" class="db-empty">No hay registros para el filtro aplicado.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

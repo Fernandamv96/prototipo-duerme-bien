@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Reportes</span>
+<h1 class="db-title" data-split>Pasajeros hospedados</h1>
+<p class="db-subtitle">Pasajeros actualmente en el hotel. La salida se registra por habitación completa.</p>
+{% if asigs %}
+<div class="db-card db-table-wrap db-reveal">
+<table class="table"><thead><tr><th>Nombre</th><th>RUT</th><th>Habitación</th><th>Responsable</th><th></th></tr></thead>
+<tbody>
+{% for a in asigs %}{% for p in a.pasajeros.all %}<tr>
+  <td><strong>{{ p.nombre }}</strong></td><td class="db-mono">{{ p.rut }}</td><td class="db-room">{{ a.habitacion.numero }}</td>
+  <td>{% if p.id == a.responsable_id %}<span class="db-star" title="Responsable">★</span>{% endif %}</td>
+  <td class="text-end">{% if forloop.first %}<form method="post" action="{% url 'pasajeros:salida' a.id %}" class="m-0">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-secondary">Registrar salida</button></form>{% endif %}</td>
+</tr>{% endfor %}{% endfor %}
+</tbody></table></div>
+{% else %}<div class="alert alert-info">No hay pasajeros hospedados.</div>{% endif %}{% endblock %}

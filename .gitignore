@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+.coverage
+htmlcov/
+*.egg-info/
+staticfiles/
+.pytest_cache/
+.vercel/
+.env*.local

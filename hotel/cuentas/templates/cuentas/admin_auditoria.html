@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Administración</span>
+<h1 class="db-title" data-split>Registro de auditoría</h1>
+<p class="db-subtitle">Últimos 200 eventos del sistema, del más reciente al más antiguo.</p>
+<div class="db-card db-table-wrap db-reveal">
+<table class="table"><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+<tbody>
+{% for r in registros %}<tr><td class="db-mono">{{ r.fecha_hora|date:"d-m-Y H:i:s" }}</td><td>{{ r.usuario }}</td><td><code>{{ r.accion }}</code></td><td>{{ r.detalle }}</td></tr>
+{% empty %}<tr><td colspan="4" class="db-empty">Sin eventos registrados.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}
