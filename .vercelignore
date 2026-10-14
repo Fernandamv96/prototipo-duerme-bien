@@ -4,3 +4,6 @@ staticfiles/
 .pytest_cache/
 htmlcov/
 .coverage
+.agents/
+.claude/
+skills-lock.json
