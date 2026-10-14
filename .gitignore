@@ -9,3 +9,6 @@ staticfiles/
 .pytest_cache/
 .vercel/
 .env*.local
+.agents/
+.claude/
+skills-lock.json
