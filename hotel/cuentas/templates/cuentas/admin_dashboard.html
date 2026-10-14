@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Administración</span>
+<h1 class="db-title" data-split>Panel del Administrador</h1>
+<p class="db-subtitle">Gestione las cuentas de los encargados y revise la actividad del sistema.</p>
+<div class="db-stats">
+  <div class="db-card db-spot db-stat db-reveal">
+    <div class="db-stat-label"><span class="db-dot violet"></span>Encargados registrados</div>
+    <div class="db-stat-value" data-count>{{ encargados }}</div></div>
+</div>
+<h2 class="db-section-title">Accesos rápidos</h2>
+<div class="db-actions">
+  <a class="db-card db-spot db-action db-reveal" href="{% url 'cuentas:admin_usuarios' %}">
+    <span class="db-action-icon">👥</span><h3>Gestionar usuarios</h3><p>Registrar nuevos encargados de hotel.</p></a>
+  <a class="db-card db-spot db-action db-reveal" href="{% url 'cuentas:admin_auditoria' %}">
+    <span class="db-action-icon">🛡️</span><h3>Auditoría</h3><p>Revisar los últimos 200 eventos registrados.</p></a>
+</div>{% endblock %}

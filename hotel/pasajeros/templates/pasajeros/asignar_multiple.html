@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Asignación de grupo</span>
+<h1 class="db-title" data-split>Asignación de grupo en varias habitaciones</h1>
+<p class="db-subtitle">Use esta opción solo si el grupo supera la capacidad máxima disponible
+(actualmente <strong>{{ max_disp }}</strong>). La suma de capacidades de las habitaciones
+elegidas debe ser igual al total de pasajeros. Costo: <strong>${{ precio }}</strong> por pasajero.</p>
+<form method="post" action="{% url 'pasajeros:asignar_multiple' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
+  {% csrf_token %}
+  <div class="mb-4"><label class="form-label" for="g-pas">Pasajeros del grupo (uno por línea: <code>Nombre;RUT</code>)</label>
+    <textarea class="form-control db-mono" id="g-pas" name="pasajeros" rows="6" placeholder="Juan Pérez;12345678-5" required></textarea></div>
+  <h2 class="db-section-title">Habitaciones vacantes</h2>
+  <div class="db-rooms">
+  {% for h in libres %}
+    <label class="db-room-card">
+      <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" aria-label="Habitación {{ h.numero }}">
+      <div class="db-room">{{ h.numero }}</div>
+      <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }}</div>
+      <small>N.º de línea responsable (dentro del grupo de la habitación)</small>
+      <input class="form-control form-control-sm" type="number" min="1" name="responsable_{{ h.id }}" value="1" aria-label="Responsable de la habitación {{ h.numero }}">
+    </label>
+  {% empty %}<div class="alert alert-info">No hay habitaciones vacantes.</div>{% endfor %}
+  </div>
+  <div class="db-counter" aria-live="polite">Pasajeros <strong data-n-pasajeros>0</strong> / capacidad seleccionada <strong data-n-capacidad>0</strong><span class="db-state"></span></div>
+  <button class="btn btn-primary">Confirmar distribución</button>
+</form>{% endblock %}

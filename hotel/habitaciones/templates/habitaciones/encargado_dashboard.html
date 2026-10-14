@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Encargado de Hotel</span>
+<h1 class="db-title" data-split>Panel del Encargado de Hotel</h1>
+<p class="db-subtitle">Resumen de la ocupación actual del hotel.</p>
+<div class="db-stats">
+  <div class="db-card db-spot db-stat db-reveal"><div class="db-stat-label"><span class="db-dot violet"></span>Habitaciones activas</div><div class="db-stat-value" data-count>{{ total }}</div></div>
+  <div class="db-card db-spot db-stat db-reveal"><div class="db-stat-label"><span class="db-dot red"></span>Ocupadas</div><div class="db-stat-value" data-count>{{ ocupadas }}</div>
+    <div class="db-meter"><i data-meter="{% if total %}{% widthratio ocupadas total 100 %}{% else %}0{% endif %}"></i></div></div>
+  <div class="db-card db-spot db-stat db-reveal"><div class="db-stat-label"><span class="db-dot green"></span>Vacantes</div><div class="db-stat-value" data-count>{{ vacantes }}</div>
+    <div class="db-meter"><i data-meter="{% if total %}{% widthratio vacantes total 100 %}{% else %}0{% endif %}"></i></div></div>
+</div>
+<h2 class="db-section-title">Accesos rápidos</h2>
+<div class="db-actions">
+  <a class="db-card db-spot db-action db-reveal" href="{% url 'pasajeros:asignar' %}"><span class="db-action-icon">🛏️</span><h3>Asignar habitación</h3><p>Registrar pasajeros en una habitación vacante.</p></a>
+  <a class="db-card db-spot db-action db-reveal" href="{% url 'pasajeros:asignar_multiple' %}"><span class="db-action-icon">🧳</span><h3>Asignar grupo</h3><p>Distribuir un grupo grande en varias habitaciones.</p></a>
+  <a class="db-card db-spot db-action db-reveal" href="{% url 'reportes:estado' %}"><span class="db-action-icon">📊</span><h3>Estado de habitaciones</h3><p>Ver qué habitaciones están ocupadas o libres.</p></a>
+  <a class="db-card db-spot db-action db-reveal" href="{% url 'reportes:hospedados' %}"><span class="db-action-icon">🔑</span><h3>Hospedados</h3><p>Listado actual y registro de salidas.</p></a>
+</div>{% endblock %}

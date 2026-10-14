@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block content %}
+<span class="db-eyebrow">Administración</span>
+<h1 class="db-title" data-split>Gestión de usuarios</h1>
+<p class="db-subtitle">Las cuentas creadas aquí tienen siempre el rol de Encargado de Hotel.</p>
+<div class="db-card db-spot mb-4 db-reveal"><div class="card-body p-4">
+<form method="post" action="{% url 'cuentas:admin_usuarios' %}" class="row g-3 align-items-end">
+  {% csrf_token %}
+  <div class="col-md-4"><label class="form-label" for="u-nombre">Nombre</label><input class="form-control" id="u-nombre" name="nombre" placeholder="Nombre completo" required></div>
+  <div class="col-md-3"><label class="form-label" for="u-user">Usuario</label><input class="form-control" id="u-user" name="username" placeholder="Usuario" required></div>
+  <div class="col-md-3"><label class="form-label" for="u-pass">Contraseña</label><input class="form-control" id="u-pass" name="password" type="password" placeholder="Mín. 8 caracteres" required></div>
+  <div class="col-md-2"><label class="form-label" for="u-rol">Rol</label><input class="form-control" id="u-rol" value="Encargado de Hotel" disabled></div>
+  <div class="col-12"><button class="btn btn-primary">Registrar encargado</button></div>
+</form></div></div>
+<div class="db-card db-table-wrap db-reveal">
+<table class="table"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th></tr></thead>
+<tbody>
+{% for u in encargados %}<tr><td><strong>{{ u.nombre }}</strong></td><td class="db-mono">{{ u.username }}</td><td><span class="db-badge vacante">{{ u.rol }}</span></td></tr>
+{% empty %}<tr><td colspan="3" class="db-empty">Aún no hay encargados registrados.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}
