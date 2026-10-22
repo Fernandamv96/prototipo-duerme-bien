@@ -5,8 +5,10 @@ Se mantienen separadas de los modelos para que puedan probarse de forma aislada
 prototipo original (hotel/reglas.py en la versión Flask).
 """
 import re
+from datetime import date
 
-PRECIO_POR_PASAJERO = 40000          # RN-07: valor fijo, definido una sola vez
+PRECIO_POR_PASAJERO = 40000          # RN-07: valor fijo por pasajero y por noche, definido una sola vez
+MAX_NOCHES = 90                      # tope razonable de estadía para evitar errores de digitación
 MIN_PASSWORD = 8
 
 RUT_RE = re.compile(r"^(\d{7,8})-([0-9K])$")
@@ -46,7 +48,30 @@ def parsear_pasajeros(texto):
         rut_n = normalizar_rut(rut)
         if rut_n is None:
             raise ReglaError(f"RUT inválido: {rut}.")
+        if any(r == rut_n for _n, r in pasajeros):
+            raise ReglaError(f"El RUT {rut_n} está repetido en la lista de pasajeros.")
         pasajeros.append((nombre[:150], rut_n))
     if not pasajeros:
         raise ReglaError("Debe ingresar al menos un pasajero.")
     return pasajeros
+
+
+def parsear_fechas(inicio, termino, hoy):
+    """Fechas de inicio y término de la estadía ('AAAA-MM-DD'). Devuelve (inicio, termino, noches)."""
+    try:
+        f_ini, f_ter = date.fromisoformat(inicio or ""), date.fromisoformat(termino or "")
+    except ValueError:
+        raise ReglaError("Debe indicar fecha de inicio y fecha de término válidas.")
+    if f_ini < hoy:
+        raise ReglaError("La fecha de inicio no puede ser anterior a hoy.")
+    noches = (f_ter - f_ini).days
+    if noches < 1:
+        raise ReglaError("La fecha de término debe ser posterior a la fecha de inicio.")
+    if noches > MAX_NOCHES:
+        raise ReglaError(f"La estadía no puede superar {MAX_NOCHES} noches.")
+    return f_ini, f_ter, noches
+
+
+def calcular_costo(n_pasajeros, noches):
+    """RN-07: pasajeros × noches × precio por pasajero."""
+    return n_pasajeros * noches * PRECIO_POR_PASAJERO

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" role="img" aria-labelledby="t d">
+  <title id="t">Habitación de noche con una cama lista para descansar</title>
+  <desc id="d">Ventana con luna y estrellas sobre una cama con almohadas y un cobertor.</desc>
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e1b4b"/><stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="muro" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17142b"/><stop offset="1" stop-color="#211d3d"/>
+    </linearGradient>
+    <linearGradient id="manta" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fde68a" stop-opacity=".55"/><stop offset="1" stop-color="#fde68a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lampara" cx=".5" cy="0" r="1">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity=".35"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="marco"><rect width="520" height="320" rx="28"/></clipPath>
+  </defs>
+  <g clip-path="url(#marco)">
+
+  <rect width="520" height="320" rx="28" fill="url(#muro)"/>
+
+  <!-- Ventana nocturna -->
+  <rect x="300" y="34" width="176" height="128" rx="14" fill="url(#cielo)" stroke="#4c4677" stroke-width="4"/>
+  <circle cx="420" cy="80" r="46" fill="url(#halo)"/>
+  <path d="M432 58a26 26 0 1 0 14 44a21 21 0 1 1-14-44z" fill="#fde68a"/>
+  <g fill="#fff">
+    <circle cx="330" cy="62" r="2"/><circle cx="356" cy="118" r="1.6"/><circle cx="378" cy="54" r="1.4"/>
+    <circle cx="318" cy="136" r="1.4"/><circle cx="455" cy="140" r="1.8"/><circle cx="392" cy="140" r="1.2"/>
+  </g>
+  <path d="M346 86l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#a5f3fc"/>
+  <line x1="388" y1="36" x2="388" y2="160" stroke="#4c4677" stroke-width="3"/>
+  <line x1="302" y1="98" x2="474" y2="98" stroke="#4c4677" stroke-width="3"/>
+
+  <!-- Lámpara de velador -->
+  <ellipse cx="66" cy="262" rx="70" ry="60" fill="url(#lampara)"/>
+  <rect x="38" y="230" width="56" height="54" rx="8" fill="#2e2950"/>
+  <rect x="62" y="196" width="8" height="34" fill="#6b6494"/>
+  <path d="M44 198h44l-10-34H54z" fill="#fbbf24"/>
+
+  <!-- Cama -->
+  <rect x="112" y="150" width="20" height="140" rx="8" fill="#4c3d8f"/>
+  <rect x="112" y="150" width="20" height="16" rx="8" fill="#6d5bd0"/>
+  <rect x="124" y="214" width="352" height="46" rx="14" fill="#3b3470"/>
+  <rect x="468" y="232" width="16" height="58" rx="7" fill="#4c3d8f"/>
+  <rect x="124" y="252" width="352" height="16" rx="6" fill="#2a2452"/>
+  <!-- Almohadas -->
+  <rect x="140" y="182" width="86" height="40" rx="18" fill="#ecebf5"/>
+  <rect x="150" y="176" width="78" height="36" rx="16" fill="#fff"/>
+  <!-- Cobertor -->
+  <path d="M214 196c40-14 120-16 180-8 40 5 74 14 82 26v30H214z" fill="url(#manta)"/>
+  <path d="M232 212c50-6 150-6 236 10" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M250 232c50-4 140-2 220 10" stroke="#fff" stroke-opacity=".2" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Zzz -->
+  <g fill="#c4b5fd" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="800">
+    <text x="236" y="150" font-size="30">Z</text>
+    <text x="262" y="122" font-size="22" fill-opacity=".8">z</text>
+    <text x="282" y="100" font-size="16" fill-opacity=".6">z</text>
+  </g>
+  </g>
+</svg>

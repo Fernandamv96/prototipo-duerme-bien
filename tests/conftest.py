@@ -1,7 +1,9 @@
 import re
+from datetime import timedelta
 
 import pytest
 from django.test import Client
+from django.utils import timezone
 
 from hotel.cuentas.models import ROL_ADMIN, ROL_ENCARGADO, Usuario
 
@@ -80,3 +82,9 @@ def hab_id(numero):
 def asig_id():
     from hotel.pasajeros.models import Asignacion
     return Asignacion.objects.order_by("-id").first().id
+
+
+def fechas(noches=1, desde=0):
+    """Fechas de estadía válidas: desde hoy (+desde días) por 'noches' noches."""
+    ini = timezone.localdate() + timedelta(days=desde)
+    return {"fecha_inicio": ini.isoformat(), "fecha_termino": (ini + timedelta(days=noches)).isoformat()}

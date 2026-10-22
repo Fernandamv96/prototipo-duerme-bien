@@ -9,7 +9,9 @@ from hotel.cuentas.models import MAX_INTENTOS, ROL_ADMIN, ROL_ENCARGADO, Auditor
 from hotel.habitaciones.models import Habitacion
 from hotel.pasajeros.models import Asignacion, HistorialOcupacion
 
-from .conftest import R1, R2, R3, asig_id, crear_hab, form, get_csrf, hab_id, login, login_admin, login_enc
+from .conftest import (
+    R1, R2, R3, R4, asig_id, crear_hab, fechas, form, get_csrf, hab_id, login, login_admin, login_enc, make_rut,
+)
 
 
 # ------------------------------------------------------------ PF: pruebas funcionales
@@ -71,7 +73,7 @@ def test_pf08_no_eliminar_habitacion_ocupada(client, encargado_user):
     login_enc(client)
     crear_hab(client, "102", 1)
     hid = hab_id("102")
-    client.post("/asignar", form(client, "/asignar", habitacion_id=hid, pasajeros=f"Ana;{R1}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hid, pasajeros=f"Ana;{R1}", responsable="1"))
     r = client.post(f"/habitaciones/{hid}/eliminar", form(client, "/habitaciones"), follow=True)
     assert "pasajeros activos" in r.content.decode()
     assert Habitacion.objects.get(numero="102").activa is True
@@ -81,7 +83,7 @@ def test_pf09_baja_logica_conserva_historial(client, encargado_user):
     login_enc(client)
     crear_hab(client, "103", 1)
     hid = hab_id("103")
-    client.post("/asignar", form(client, "/asignar", habitacion_id=hid, pasajeros=f"Luis;{R2}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hid, pasajeros=f"Luis;{R2}", responsable="1"))
     client.post(f"/asignaciones/{asig_id()}/salida", form(client, "/hospedados"))
     client.post(f"/habitaciones/{hid}/eliminar", form(client, "/habitaciones"))
     assert Habitacion.objects.get(numero="103").activa is False
@@ -95,24 +97,71 @@ def test_pf10_rut_invalido_rechazado(client, encargado_user):
     login_enc(client)
     crear_hab(client, "104", 1)
     bad = R1[:-1] + ("0" if R1[-1] != "0" else "1")
-    r = client.post("/asignar", form(client, "/asignar", habitacion_id=hab_id("104"), pasajeros=f"X;{bad}", responsable="1"), follow=True)
+    r = client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("104"), pasajeros=f"X;{bad}", responsable="1"), follow=True)
     assert "RUT inválido" in r.content.decode()
     assert normalizar_rut(bad) is None
 
 
-def test_pf11_capacidad_no_exacta_rechazada(client, encargado_user):
+def test_pf10b_rut_repetido_o_ya_hospedado_rechazado(client, encargado_user):
     login_enc(client)
-    crear_hab(client, "201", 3)
-    r = client.post("/asignar", form(client, "/asignar", habitacion_id=hab_id("201"), pasajeros=f"A;{R1}\nB;{R2}", responsable="1"), follow=True)
-    assert "exactamente 3" in r.content.decode()
+    crear_hab(client, "105", 2)
+    crear_hab(client, "106", 1)
+    r = client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("105"), pasajeros=f"A;{R1}\nB;{R1}", responsable="1"), follow=True)
+    assert "repetido" in r.content.decode()
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("105"), pasajeros=f"A;{R1}", responsable="1"))
+    r = client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("106"), pasajeros=f"A;{R1}", responsable="1"), follow=True)
+    assert "ya está hospedado" in r.content.decode()
+    assert Asignacion.objects.count() == 1
+
+
+def test_pf11_capacidad_superada_rechazada(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "201", 2)
+    r = client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("201"), pasajeros=f"A;{R1}\nB;{R2}\nC;{R3}", responsable="1"), follow=True)
+    assert "como máximo 2" in r.content.decode()
     assert Asignacion.objects.count() == 0
+
+
+def test_pf11b_menos_pasajeros_que_la_capacidad_se_acepta(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "204", 3)
+    r = client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("204"), pasajeros=f"A;{R1}\nB;{R2}", responsable="2"))
+    assert r.status_code == 302
+    a = Asignacion.objects.get()
+    assert a.pasajeros.count() == 2 and a.responsable.rut == R2
 
 
 def test_pf12_tres_pasajeros_en_habitacion_de_tres_cuesta_120000(client, encargado_user):
     login_enc(client)
     crear_hab(client, "202", 3)
-    client.post("/asignar", form(client, "/asignar", habitacion_id=hab_id("202"), pasajeros=f"A;{R1}\nB;{R2}\nC;{R3}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("202"), pasajeros=f"A;{R1}\nB;{R2}\nC;{R3}", responsable="1"))
     assert Asignacion.objects.get().costo_total == 120000
+
+
+def test_pf12b_cobro_por_noche_con_fechas(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "205", 2)
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=3, desde=2), habitacion_id=hab_id("205"), pasajeros=f"A;{R1}\nB;{R2}", responsable="1"))
+    a = Asignacion.objects.get()
+    assert a.noches == 3 and a.costo_total == 2 * 3 * 40000
+    assert a.fecha_inicio == timezone.localdate() + timedelta(days=2)
+    assert "$240000" in client.get("/hospedados").content.decode()
+
+
+def test_pf12c_fechas_invalidas_rechazadas(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "206", 1)
+    hid = hab_id("206")
+    casos = [
+        (fechas(noches=0), "posterior a la fecha de inicio"),
+        (fechas(desde=-1), "anterior a hoy"),
+        ({"fecha_inicio": "", "fecha_termino": ""}, "fecha de inicio y fecha de término"),
+    ]
+    for f, msg in casos:
+        data = form(client, "/asignar", habitacion_id=hid, pasajeros=f"A;{R1}", responsable="1")
+        data.update(f)
+        assert msg in client.post("/asignar", data, follow=True).content.decode()
+    assert Asignacion.objects.count() == 0
 
 
 def test_pf13_fecha_hora_generada_por_servidor(client, encargado_user):
@@ -120,7 +169,7 @@ def test_pf13_fecha_hora_generada_por_servidor(client, encargado_user):
     crear_hab(client, "203", 1)
     antes = timezone.now() - timedelta(seconds=5)
     client.post("/asignar", form(
-        client, "/asignar", habitacion_id=hab_id("203"), pasajeros=f"A;{R1}", responsable="1",
+        client, "/asignar", **fechas(), habitacion_id=hab_id("203"), pasajeros=f"A;{R1}", responsable="1",
         fecha_hora_inicio="2001-01-01T00:00",   # el cliente no puede fijar la fecha; se ignora
     ))
     inicio = Asignacion.objects.get().fecha_hora_inicio
@@ -133,7 +182,7 @@ def test_pf14_grupo_mayor_que_la_habitacion_mas_grande_se_divide(client, encarga
     crear_hab(client, "302", 1)
     ids = [str(hab_id("301")), str(hab_id("302"))]
     pax = f"A;{R1}\nB;{R2}\nC;{R3}"
-    data = form(client, "/asignar/multiple", pasajeros=pax)
+    data = form(client, "/asignar/multiple", pasajeros=pax, **fechas())
     data["habitacion_ids"] = ids                 # Django envía varios valores para la misma clave
     data[f"responsable_{ids[0]}"] = "1"
     data[f"responsable_{ids[1]}"] = "1"
@@ -142,10 +191,29 @@ def test_pf14_grupo_mayor_que_la_habitacion_mas_grande_se_divide(client, encarga
     assert sorted(a.costo_total for a in Asignacion.objects.all()) == [40000, 80000]
 
 
+def test_pf14b_grupo_con_capacidad_sobrante(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "303", 2)
+    crear_hab(client, "304", 2)
+    ids = [str(hab_id("303")), str(hab_id("304"))]
+    data = form(client, "/asignar/multiple", pasajeros=f"A;{R1}\nB;{R2}\nC;{R3}", **fechas())
+    data["habitacion_ids"] = ids
+    data[f"responsable_{ids[1]}"] = "1"
+    assert client.post("/asignar/multiple", data).status_code == 302
+    assert sorted(a.pasajeros.count() for a in Asignacion.objects.all()) == [1, 2]
+    # 3 pasajeros en habitaciones de 2 + 2 + 1: la última quedaría vacía y se rechaza
+    for numero, cap in (("305", 2), ("306", 2), ("307", 1)):
+        crear_hab(client, numero, cap)
+    pax = f"D;{R4}\nE;{make_rut('67890123')}\nF;{make_rut('78901234')}"
+    data = form(client, "/asignar/multiple", pasajeros=pax, **fechas())
+    data["habitacion_ids"] = [str(hab_id(n)) for n in ("305", "306", "307")]
+    assert "quedaría vacía" in client.post("/asignar/multiple", data, follow=True).content.decode()
+
+
 def test_pf15_sin_responsable_rechazado(client, encargado_user):
     login_enc(client)
     crear_hab(client, "401", 2)
-    r = client.post("/asignar", form(client, "/asignar", habitacion_id=hab_id("401"), pasajeros=f"A;{R1}\nB;{R2}", responsable="0"), follow=True)
+    r = client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("401"), pasajeros=f"A;{R1}\nB;{R2}", responsable="0"), follow=True)
     assert "responsable válido" in r.content.decode()
     assert Asignacion.objects.count() == 0
 
@@ -154,7 +222,7 @@ def test_pf16_estado_y_hospedados_tras_asignacion(client, encargado_user):
     login_enc(client)
     crear_hab(client, "501", 1)
     crear_hab(client, "502", 1)
-    client.post("/asignar", form(client, "/asignar", habitacion_id=hab_id("501"), pasajeros=f"Marta Soto;{R1}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("501"), pasajeros=f"Marta Soto;{R1}", responsable="1"))
     estado = client.get("/estado").content.decode()
     assert "table-danger" in estado and "table-success" in estado
     hosp = client.get("/hospedados").content.decode()
@@ -180,7 +248,7 @@ def test_ps03_inyeccion_sql_en_login(client, encargado_user):
 def test_ps04_xss_escapado(client, encargado_user):
     login_enc(client)
     crear_hab(client, "601", 1)
-    client.post("/asignar", form(client, "/asignar", habitacion_id=hab_id("601"), pasajeros=f"<script>alert(1)</script>;{R1}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("601"), pasajeros=f"<script>alert(1)</script>;{R1}", responsable="1"))
     html = client.get("/hospedados").content.decode()
     assert "<script>alert(1)</script>" not in html and "&lt;script&gt;" in html
 
@@ -240,7 +308,7 @@ def test_ps08_auditoria_de_login_asignacion_y_eliminacion(client, encargado_user
     login_enc(client)
     crear_hab(client, "801", 1)
     hid = hab_id("801")
-    client.post("/asignar", form(client, "/asignar", habitacion_id=hid, pasajeros=f"A;{R1}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hid, pasajeros=f"A;{R1}", responsable="1"))
     client.post(f"/asignaciones/{asig_id()}/salida", form(client, "/hospedados"))
     client.post(f"/habitaciones/{hid}/eliminar", form(client, "/habitaciones"))
     acciones = set(Auditoria.objects.values_list("accion", flat=True))

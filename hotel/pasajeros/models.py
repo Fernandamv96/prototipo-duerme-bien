@@ -26,7 +26,9 @@ class Asignacion(models.Model):
         Pasajero, on_delete=models.PROTECT, related_name="asignaciones_responsable"
     )
     costo_total = models.PositiveIntegerField()                       # RN-07
-    fecha_hora_inicio = models.DateTimeField()                        # RN-08 (generada por el servidor)
+    fecha_inicio = models.DateField(null=True, blank=True)            # estadía: fecha de inicio
+    fecha_termino = models.DateField(null=True, blank=True)           # estadía: fecha de término prevista
+    fecha_hora_inicio = models.DateTimeField()                        # RN-08 (registro, generada por el servidor)
     fecha_hora_termino = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=12, choices=ESTADOS, default="ACTIVA")
     registrado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT)
@@ -36,6 +38,12 @@ class Asignacion(models.Model):
 
     def __str__(self):
         return f"Asignación {self.id} - hab. {self.habitacion.numero}"
+
+    @property
+    def noches(self):
+        if self.fecha_inicio and self.fecha_termino:
+            return (self.fecha_termino - self.fecha_inicio).days
+        return None
 
 
 class HistorialOcupacion(models.Model):

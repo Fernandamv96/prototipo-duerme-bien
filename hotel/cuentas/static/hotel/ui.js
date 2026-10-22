@@ -96,23 +96,103 @@
     });
   }
 
-  // Contador en vivo de pasajeros vs. capacidad (asignación simple y de grupo)
+  // RUT chileno: misma regla que hotel/reglas.py (normalizar_rut). Devuelve "12345678-K" o null.
+  function normalizarRut(rut) {
+    var m = (rut || "").replace(/[.\s]/g, "").toUpperCase().match(/^(\d{7,8})-([0-9K])$/);
+    if (!m) return null;
+    var suma = 0, factor = 2;
+    for (var i = m[1].length - 1; i >= 0; i--) {
+      suma += parseInt(m[1][i], 10) * factor;
+      factor = factor === 7 ? 2 : factor + 1;
+    }
+    var resto = 11 - (suma % 11), esperado = resto === 11 ? "0" : resto === 10 ? "K" : String(resto);
+    return m[2] === esperado ? parseInt(m[1], 10) + "-" + m[2] : null;
+  }
+
+  function opciones(sel, nombres, vacio) {
+    var prev = sel.value;
+    sel.textContent = "";
+    (nombres.length ? nombres : [vacio]).forEach(function (nombre, i) {
+      var o = document.createElement("option");
+      o.value = String(i + 1); o.textContent = nombre;
+      sel.appendChild(o);
+    });
+    if (prev && parseInt(prev, 10) <= nombres.length) sel.value = prev;
+  }
+
+  // Asignación simple y de grupo: RUT en vivo, responsable por nombre, capacidad y total a cobrar
   $$("[data-asignacion]").forEach(function (form) {
     var area = form.querySelector("textarea[name=pasajeros]");
     var box = form.querySelector(".db-counter");
     if (!area || !box) return;
+    var precio = parseInt(form.getAttribute("data-precio"), 10) || 0;
     var outP = box.querySelector("[data-n-pasajeros]"), outC = box.querySelector("[data-n-capacidad]"), state = box.querySelector(".db-state");
-    function capacidad() {
-      var sel = form.querySelector("select[name=habitacion_id]");
-      if (sel) { var o = sel.options[sel.selectedIndex]; return o ? parseInt(o.getAttribute("data-cap"), 10) || 0 : 0; }
-      return $$("input[name=habitacion_ids]:checked", form).reduce(function (s, cb) { return s + (parseInt(cb.getAttribute("data-cap"), 10) || 0); }, 0);
+    var outN = box.querySelector("[data-n-noches]"), outT = box.querySelector("[data-total]");
+    var lista = form.querySelector("[data-rut-check]");
+    var ini = form.querySelector("input[name=fecha_inicio]"), ter = form.querySelector("input[name=fecha_termino]");
+    var selHab = form.querySelector("select[name=habitacion_id]");
+
+    function pasajeros() {
+      var vistos = {};
+      return area.value.split(/\r?\n/).filter(function (l) { return l.trim(); }).map(function (l) {
+        var partes = l.split(";"), nombre = (partes[0] || "").trim(), rut = partes.slice(1).join(";").trim();
+        var p = { nombre: nombre || "(sin nombre)", rut: rut, error: "" };
+        var rutN = normalizarRut(rut);
+        if (partes.length < 2 || !nombre || !rut) p.error = "Use el formato Nombre;RUT";
+        else if (!rutN) p.error = "RUT inválido";
+        else if (vistos[rutN]) p.error = "RUT repetido";
+        else vistos[rutN] = true;
+        return p;
+      });
+    }
+    function noches() {
+      var a = ini && Date.parse(ini.value), b = ter && Date.parse(ter.value);
+      return a && b ? Math.round((b - a) / 86400000) : 0;
+    }
+    // Habitaciones elegidas en el mismo orden que usa el servidor: mayor capacidad primero, luego número
+    function habitaciones() {
+      if (selHab) { var o = selHab.options[selHab.selectedIndex]; return o ? [{ cap: parseInt(o.getAttribute("data-cap"), 10) || 0 }] : []; }
+      return $$("input[name=habitacion_ids]:checked", form).map(function (cb) {
+        return { id: cb.value, num: cb.getAttribute("data-num"), cap: parseInt(cb.getAttribute("data-cap"), 10) || 0 };
+      }).sort(function (x, y) { return y.cap - x.cap || (x.num < y.num ? -1 : x.num > y.num ? 1 : 0); });
     }
     function update() {
-      var n = area.value.split(/\r?\n/).filter(function (l) { return l.trim(); }).length, cap = capacidad();
-      outP.textContent = n; outC.textContent = cap;
-      var ok = n > 0 && n === cap;
+      var pax = pasajeros(), n = pax.length, habs = habitaciones(), noc = noches();
+      var cap = habs.reduce(function (s, h) { return s + h.cap; }, 0);
+      var malos = pax.filter(function (p) { return p.error; });
+
+      lista.textContent = "";
+      pax.forEach(function (p) {
+        var li = document.createElement("li");
+        li.className = p.error ? "bad" : "ok";
+        li.textContent = (p.error ? "✗ " : "✓ ") + p.nombre + " — " + (p.rut || "sin RUT") + (p.error ? " (" + p.error + ")" : "");
+        lista.appendChild(li);
+      });
+      area.setCustomValidity(malos.length ? "Corrija los RUT marcados en rojo." : "");
+      if (ter && ini) { ter.min = ini.value; ter.setCustomValidity(ini.value && noc < 1 ? "La fecha de término debe ser posterior a la de inicio." : ""); }
+
+      // Responsable: lista con los nombres de los pasajeros que quedan en cada habitación
+      var nombres = pax.map(function (p) { return p.nombre; }), porHab = {};
+      if (selHab) opciones(form.querySelector("[data-responsable]"), nombres, "Ingrese los pasajeros primero");
+      else {
+        var desde = 0;
+        habs.forEach(function (h) { porHab[h.id] = nombres.slice(desde, desde + h.cap); desde += h.cap; });
+        $$("[data-responsable-hab]", form).forEach(function (sel) {
+          var id = sel.getAttribute("data-responsable-hab");
+          opciones(sel, porHab[id] || [], id in porHab ? "Sin pasajeros asignados" : "Seleccione la habitación");
+        });
+      }
+
+      outP.textContent = n; outC.textContent = cap; outN.textContent = noc > 0 ? noc : 0;
+      outT.textContent = "$" + (n * Math.max(noc, 0) * precio).toLocaleString("es-CL");
+      var vacias = habs.length > 1 && n > 0 ? habs.filter(function (h) { return !(porHab[h.id] || []).length; }) : [];
+      var problema = malos.length ? malos.length + " RUT con error"
+        : n > cap ? "Sobran " + (n - cap) + " pasajero(s)"
+        : vacias.length ? "La habitación " + vacias[0].num + " quedaría vacía"
+        : noc < 1 ? "Revise las fechas" : "";
+      var ok = n > 0 && !problema;
       box.classList.toggle("ok", ok); box.classList.toggle("bad", !ok && n > 0);
-      state.textContent = ok ? "✓ Cuadra con la capacidad" : (n > 0 ? (n < cap ? "Faltan " + (cap - n) + " pasajero(s)" : "Sobran " + (n - cap) + " pasajero(s)") : "");
+      state.textContent = n === 0 ? "" : ok ? "✓ Listo para confirmar" : problema;
     }
     form.addEventListener("input", update);
     form.addEventListener("change", update);

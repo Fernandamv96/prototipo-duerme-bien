@@ -257,12 +257,18 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); }
 .db-room-card .db-room { font-size: 1.35rem; }
 .db-room-card .db-cap { color: var(--db-muted); font-size: .8rem; margin-bottom: .7rem; }
 .db-room-card .form-control { padding: .35rem .6rem; font-size: .85rem; }
+.db-rut-check { list-style: none; padding: 0; margin: .5rem 0 0; font-size: .8rem; display: grid; gap: .15rem; }
+.db-rut-check li.ok { color: var(--db-green); }
+.db-rut-check li.bad { color: var(--db-red); font-weight: 600; }
+.db-room-card .form-select { padding-top: .35rem; padding-bottom: .35rem; font-size: .85rem; }
 .db-room-card small { display: block; color: var(--db-muted); font-size: .72rem; margin-bottom: .3rem; }
 
 /* ------------------------------------------------------------------ Login */
 .db-login { min-height: calc(100vh - 6rem); display: grid; grid-template-columns: 1.1fr .9fr; gap: 3rem; align-items: center; }
 .db-hero h1 { font-size: clamp(2.4rem, 5.5vw, 4.2rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.02; margin-bottom: 1rem; }
 .db-hero p { color: var(--db-muted); font-size: 1.05rem; max-width: 46ch; }
+.db-hero-img { display: block; width: 100%; max-width: 520px; height: auto; margin: .5rem 0 1.5rem; border-radius: 28px;
+  box-shadow: 0 30px 60px -30px rgba(139,92,246,.55), 0 0 0 1px var(--db-border); }
 .db-hero-tags { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.5rem; }
 .db-hero-tags a {
   font-size: .8rem; color: #cfcde3; text-decoration: none; padding: .4rem .85rem; border-radius: 999px;

@@ -1,8 +1,10 @@
-{% extends "base.html" %}{% block content %}
+{% extends "base.html" %}{% load static %}{% block content %}
 <div class="db-login">
   <section class="db-hero">
     <span class="db-eyebrow">Sistema de gestión hotelera</span>
     <h1><span data-split>Descanso que se</span> <span class="db-gradient-text">gestiona solo.</span></h1>
+    <img class="db-hero-img db-reveal" src="{% static 'hotel/descanso.svg' %}" width="520" height="320"
+         alt="Habitación de noche con una cama lista para descansar">
     <p class="db-reveal">Habitaciones, pasajeros y ocupación del Hotel Duerme Bien en un solo panel, con acceso por rol y registro de auditoría.</p>
     <nav class="db-hero-tags db-reveal" aria-label="Accesos directos">
       {% for ruta, info in secciones.items %}
