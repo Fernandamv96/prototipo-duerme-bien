@@ -12,3 +12,6 @@ staticfiles/
 .agents/
 .claude/
 skills-lock.json
+
+# Entorno virtual
+.venv/
