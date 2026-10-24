@@ -13,7 +13,15 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: en producción, definir SECRET_KEY por variable de entorno.
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-solo-para-desarrollo-local-cambiar-en-produccion")
+# En el entorno de producción de Vercel no hay valor por defecto: sin la variable,
+# la app no arranca (así nunca se firma una sesión con una clave publicada en el repo).
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
+if not SECRET_KEY:
+    if os.environ.get("VERCEL_ENV") == "production":
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured("Falta la variable de entorno SECRET_KEY.")
+    SECRET_KEY = "django-insecure-solo-para-desarrollo-local-cambiar-en-produccion"
 
 # Vercel define VERCEL=1 en sus funciones: ahí se asume producción por defecto.
 EN_VERCEL = os.environ.get("VERCEL") == "1"
