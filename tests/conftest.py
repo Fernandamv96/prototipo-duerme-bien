@@ -39,7 +39,7 @@ def encargado_user(db):
 @pytest.fixture
 def client():
     # enforce_csrf_checks=True: todas las pruebas pasan por la misma validación de token
-    # CSRF que un navegador real, igual que el prototipo original (PS-05 / SEG-04).
+    # CSRF que un navegador real (PS-05 / SEG-04).
     return Client(enforce_csrf_checks=True)
 
 

@@ -1,8 +1,7 @@
 """Reglas de negocio puras (RN-01 a RN-10), sin dependencias de Django.
 
 Se mantienen separadas de los modelos para que puedan probarse de forma aislada
-(pruebas unitarias, Tabla 21 del informe) y para conservar el mismo diseño que el
-prototipo original (hotel/reglas.py en la versión Flask).
+(pruebas unitarias, Tabla 21 del informe).
 """
 import re
 from datetime import date

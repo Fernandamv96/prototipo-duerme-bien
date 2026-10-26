@@ -23,4 +23,8 @@ class Command(BaseCommand):
             u = Usuario(nombre=nombre, username=user, rol=rol)
             u.set_password(pwd)
             u.save()
-            self.stdout.write(f"{user} / {pwd}")
+            if os.environ.get(env):
+                # La contraseña viene de una variable de entorno: no se escribe en los registros (logs).
+                self.stdout.write(f"{user}: creado con la contraseña definida en {env}")
+            else:
+                self.stdout.write(f"{user} / {pwd}")

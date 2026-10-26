@@ -1,8 +1,7 @@
 """Modelo de datos - módulo cuentas (sección 8.3 del informe).
 
 Se usa un modelo de Usuario propio (no el por defecto de Django) para controlar exactamente
-los dos roles del caso (RN-01) y el bloqueo por intentos fallidos (PS-06), manteniendo el
-mismo diseño que el prototipo original.
+los dos roles del caso (RN-01) y el bloqueo por intentos fallidos (PS-06).
 """
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
@@ -43,7 +42,7 @@ class Usuario(models.Model):
     def __str__(self):
         return f"{self.username} ({self.rol})"
 
-    # ---- utilidades de autenticación (equivalentes a bcrypt en el prototipo Flask) ----
+    # ---- utilidades de autenticación (hash PBKDF2-SHA256 de Django, RNF-01) ----
     def set_password(self, raw_password):
         self.password_hash = make_password(raw_password)  # PBKDF2 por defecto en Django
 

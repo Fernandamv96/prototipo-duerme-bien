@@ -29,8 +29,18 @@ EN_VERCEL = os.environ.get("VERCEL") == "1"
 # DEBUG debe ser False en producción (PS-07 / SEG-07: no exponer detalles técnicos).
 DEBUG = os.environ.get("DJANGO_DEBUG", "0" if EN_VERCEL else "1") == "1"
 
+if not DEBUG and SECRET_KEY.startswith("django-insecure"):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("Defina SECRET_KEY por variable de entorno antes de ejecutar en producción.")
+
 _hosts_por_defecto = ".vercel.app" if EN_VERCEL else "127.0.0.1,localhost"
 ALLOWED_HOSTS = [h for h in os.environ.get("ALLOWED_HOSTS", _hosts_por_defecto).split(",") if h]
+# Vercel (PaaS) informa el dominio del despliegue en VERCEL_URL.
+if os.environ.get("VERCEL_URL"):
+    ALLOWED_HOSTS.append(os.environ["VERCEL_URL"])
+CSRF_TRUSTED_ORIGINS = ["https://*.vercel.app"] + [
+    f"https://{h}" for h in ALLOWED_HOSTS if h not in ("127.0.0.1", "localhost") and not h.startswith(".")
+]
 
 
 INSTALLED_APPS = [

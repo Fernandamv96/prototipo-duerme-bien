@@ -1,6 +1,6 @@
 """Pruebas del prototipo Django. Los identificadores (PF-xx, PS-xx) corresponden a las
-tablas de pruebas funcionales y de seguridad del informe (Unidad 3), y son los mismos
-nombres de prueba que tenía la versión Flask original, para conservar la trazabilidad."""
+tablas de pruebas funcionales y de seguridad del informe (Unidad 3), para conservar la
+trazabilidad."""
 from datetime import timedelta
 
 from django.utils import timezone
