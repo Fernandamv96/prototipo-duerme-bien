@@ -376,7 +376,7 @@ def test_ps09_cabeceras_de_seguridad(client):
     assert r.headers["X-Content-Type-Options"] == "nosniff"
 
 
-# ------------------------------------------------------------ accesos directos de la pantalla de ingreso
+# ------------------------------------------------------------ volver a la sección pedida tras ingresar
 def login_con_next(client, user, pwd, destino):
     token = get_csrf(client, f"/login?next={destino}")
     return client.post("/login", {"username": user, "password": pwd, "next": destino, "csrfmiddlewaretoken": token})

@@ -269,14 +269,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); }
 .db-hero p { color: var(--db-muted); font-size: 1.05rem; max-width: 46ch; }
 .db-hero-img { display: block; width: 100%; max-width: 520px; height: auto; margin: .5rem 0 1.5rem; border-radius: 28px;
   box-shadow: 0 30px 60px -30px rgba(139,92,246,.55), 0 0 0 1px var(--db-border); }
-.db-hero-tags { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.5rem; }
-.db-hero-tags a {
-  font-size: .8rem; color: #cfcde3; text-decoration: none; padding: .4rem .85rem; border-radius: 999px;
-  border: 1px solid var(--db-border); background: rgba(255,255,255,.03); transition: color .25s, border-color .25s, background .25s, transform .3s var(--db-ease);
-}
-.db-hero-tags a span { display: inline-block; opacity: .4; transition: transform .3s var(--db-ease), opacity .25s; }
-.db-hero-tags a:hover, .db-hero-tags a.active { color: #fff; border-color: rgba(139,92,246,.6); background: rgba(139,92,246,.16); transform: translateY(-2px); }
-.db-hero-tags a:hover span, .db-hero-tags a.active span { opacity: 1; transform: translateX(3px); }
 .db-goto { color: #a5f3fc; padding: .55rem .8rem; border-radius: 10px; background: rgba(34,211,238,.08); border: 1px solid rgba(34,211,238,.25); }
 .db-login .db-card { padding: 2.2rem; }
 .db-login h2 { font-weight: 700; font-size: 1.35rem; margin-bottom: .3rem; }

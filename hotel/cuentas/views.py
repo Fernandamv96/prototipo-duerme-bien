@@ -21,7 +21,7 @@ def index(request):
     return redirect("habitaciones:encargado_dashboard")
 
 
-SECCIONES = {   # accesos directos de la pantalla de ingreso: ruta -> (nombre, rol requerido)
+SECCIONES = {   # secciones a las que se vuelve tras ingresar con ?next=: ruta -> (nombre, rol requerido)
     "/habitaciones": ("Habitaciones", "Encargado"),
     "/asignar/multiple": ("Asignación de grupos", "Encargado"),
     "/historial": ("Historial", "Encargado"),
@@ -48,7 +48,7 @@ def _destino_seguro(request, usuario):
 def login(request):
     destino = request.POST.get("next") or request.GET.get("next", "")
     seccion = SECCIONES.get(destino.split("?", 1)[0])
-    ctx = {"next": destino, "seccion": seccion[0] if seccion else None, "secciones": SECCIONES}
+    ctx = {"next": destino, "seccion": seccion[0] if seccion else None}
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
