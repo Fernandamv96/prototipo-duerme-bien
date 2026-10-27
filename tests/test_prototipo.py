@@ -167,6 +167,17 @@ def test_pf12b_cobro_por_noche_con_fechas(client, encargado_user):
     assert "$240000" in client.get("/hospedados").content.decode()
 
 
+def test_pf09b_registrar_numero_dado_de_baja_lo_reactiva(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "209", 3)
+    hid = hab_id("209")
+    client.post(f"/habitaciones/{hid}/eliminar", form(client, "/habitaciones"))
+    r = crear_hab(client, "209", 2, ori="CIUDAD", precio=50000)
+    assert r.status_code == 302
+    h = Habitacion.objects.get(numero="209")
+    assert h.id == hid and h.activa and (h.capacidad, h.orientacion, h.precio) == (2, "CIUDAD", 50000)
+
+
 def test_pf12d_cada_habitacion_cobra_su_precio(client, encargado_user):
     login_enc(client)
     crear_hab(client, "206", 2, precio=55000)

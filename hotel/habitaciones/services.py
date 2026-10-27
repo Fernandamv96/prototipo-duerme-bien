@@ -19,9 +19,17 @@ def registrar_habitacion(numero, capacidad, orientacion, precio, usuario_label):
         raise ReglaError("La capacidad debe ser un número entero.")
     if not numero or capacidad <= 0 or orientacion not in ORIENTACIONES_VALIDAS:
         raise ReglaError("Número, capacidad (>0) y orientación son obligatorios (RF-09).")
-    if Habitacion.objects.filter(numero=numero).exists():
+    hab = Habitacion.objects.filter(numero=numero).first()
+    if hab is not None and hab.activa:
         raise ReglaError(f"La habitación {numero} ya existe (RN-03).")
     precio = parsear_precio(precio)
+    if hab is not None:
+        # Número de una habitación dada de baja: se reactiva con los datos nuevos y conserva su historial
+        hab.capacidad, hab.orientacion, hab.precio, hab.activa = capacidad, orientacion, precio, True
+        hab.save(update_fields=["capacidad", "orientacion", "precio", "activa"])
+        auditar(usuario_label, "HABITACION_REACTIVADA",
+                f"Habitación {numero} reactivada, cap. {capacidad}, {orientacion}, ${precio}")
+        return hab
     hab = Habitacion.objects.create(numero=numero, capacidad=capacidad, orientacion=orientacion, precio=precio)
     auditar(usuario_label, "HABITACION_CREADA", f"Habitación {numero}, cap. {capacidad}, {orientacion}, ${precio}")
     return hab
