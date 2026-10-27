@@ -28,7 +28,7 @@ def asignar(request):
             hab_id = int(request.POST.get("habitacion_id", "0"))
             idx = int(request.POST.get("responsable", "0"))
             crear_asignacion(
-                hab_id, request.POST.get("pasajeros"), idx,
+                hab_id, request.POST.get("pasajeros"), request.POST.get("cantidad"), idx,
                 request.POST.get("fecha_inicio"), request.POST.get("fecha_termino"),
                 request.hotel_user, request.hotel_user.username,
             )
@@ -52,7 +52,7 @@ def asignar_multiple(request):
                 h.id: int(request.POST.get(f"responsable_{h.id}", "1") or 1) for h in libres if h.id in ids
             }
             asigs = crear_asignacion_multiple(
-                ids, request.POST.get("pasajeros"), responsables,
+                ids, request.POST.get("pasajeros"), request.POST.get("cantidad"), responsables,
                 request.POST.get("fecha_inicio"), request.POST.get("fecha_termino"),
                 request.hotel_user, request.hotel_user.username,
             )

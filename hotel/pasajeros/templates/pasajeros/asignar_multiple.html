@@ -11,6 +11,8 @@ elegidas debe ser igual o mayor al total de pasajeros. Cada habitación cobra su
       <input class="form-control" id="g-ini" type="date" name="fecha_inicio" value="{{ hoy }}" min="{{ hoy }}" required></div>
     <div class="col-md-3"><label class="form-label" for="g-ter">Fecha de término</label>
       <input class="form-control" id="g-ter" type="date" name="fecha_termino" value="{{ manana }}" min="{{ manana }}" required></div>
+    <div class="col-md-3"><label class="form-label" for="g-cant">Cantidad de pasajeros</label>
+      <input class="form-control" id="g-cant" type="number" name="cantidad" min="1" step="1" required data-cantidad></div>
     <div class="col-12"><label class="form-label" for="g-pas">Pasajeros del grupo (uno por línea: <code>Nombre;RUT</code>)</label>
       <textarea class="form-control db-mono" id="g-pas" name="pasajeros" rows="6" placeholder="Juan Pérez;12345678-5" required></textarea>
       <ul class="db-rut-check" data-rut-check aria-live="polite"></ul></div>

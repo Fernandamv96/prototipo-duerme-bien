@@ -1,16 +1,18 @@
 {% extends "base.html" %}{% block content %}
 <span class="db-eyebrow">Asignación</span>
 <h1 class="db-title" data-split>Asignar habitación</h1>
-<p class="db-subtitle">El costo es el precio de la habitación por pasajero y por noche. Ingrese un pasajero por línea con el formato <code>Nombre;RUT</code>.
+<p class="db-subtitle">El costo es el precio de la habitación por pasajero y por noche. Indique la cantidad de pasajeros e ingrese cada uno en su propia línea con el formato <code>Nombre;RUT</code>.
 La cantidad de pasajeros puede ser igual o menor a la capacidad de la habitación.</p>
 {% if libres %}
 <form method="post" action="{% url 'pasajeros:asignar' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
   <div class="row g-3">
-    <div class="col-md-6"><label class="form-label" for="a-hab">Habitación</label>
+    <div class="col-md-4"><label class="form-label" for="a-hab">Habitación</label>
       <select class="form-select" id="a-hab" name="habitacion_id" required>
       {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }}, ${{ h.precio }})</option>{% endfor %}
       </select></div>
+    <div class="col-md-2"><label class="form-label" for="a-cant">Cantidad de pasajeros</label>
+      <input class="form-control" id="a-cant" type="number" name="cantidad" min="1" step="1" required data-cantidad></div>
     <div class="col-md-3"><label class="form-label" for="a-ini">Fecha de inicio</label>
       <input class="form-control" id="a-ini" type="date" name="fecha_inicio" value="{{ hoy }}" min="{{ hoy }}" required></div>
     <div class="col-md-3"><label class="form-label" for="a-ter">Fecha de término</label>

@@ -66,6 +66,8 @@ def login_admin(client):
 
 
 def form(client, url, **data):
+    if "pasajeros" in data:      # como en el formulario real: la cantidad declarada coincide con la lista
+        data.setdefault("cantidad", str(len([l for l in data["pasajeros"].splitlines() if l.strip()])))
     data["csrfmiddlewaretoken"] = get_csrf(client, url)
     return data
 

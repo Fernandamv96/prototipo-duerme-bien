@@ -5,7 +5,7 @@ from django.utils import timezone
 from hotel.cuentas.models import auditar
 from hotel.habitaciones.models import Habitacion
 from hotel.habitaciones.services import habitaciones_libres
-from hotel.reglas import ReglaError, calcular_costo, parsear_fechas, parsear_pasajeros
+from hotel.reglas import ReglaError, calcular_costo, parsear_fechas, parsear_pasajeros, validar_cantidad
 
 from .models import Asignacion, HistorialOcupacion, Pasajero
 
@@ -48,7 +48,7 @@ def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuar
 
 
 @transaction.atomic
-def crear_asignacion(hab_id, texto_pasajeros, idx_responsable, inicio, termino, usuario, usuario_label):
+def crear_asignacion(hab_id, texto_pasajeros, cantidad, idx_responsable, inicio, termino, usuario, usuario_label):
     try:
         hab = Habitacion.objects.get(pk=hab_id, activa=True)
     except Habitacion.DoesNotExist:
@@ -56,6 +56,7 @@ def crear_asignacion(hab_id, texto_pasajeros, idx_responsable, inicio, termino, 
     if hab.ocupada():
         raise ReglaError(f"La habitación {hab.numero} ya está ocupada.")
     datos = parsear_pasajeros(texto_pasajeros)
+    validar_cantidad(cantidad, datos)
     if len(datos) > hab.capacidad:                                     # RN-06 / RF-14: igual o menos
         raise ReglaError(
             f"La habitación {hab.numero} admite como máximo {hab.capacidad} pasajero(s); "
@@ -69,9 +70,10 @@ def crear_asignacion(hab_id, texto_pasajeros, idx_responsable, inicio, termino, 
 
 
 @transaction.atomic
-def crear_asignacion_multiple(hab_ids, texto_pasajeros, responsables, inicio, termino, usuario, usuario_label):
+def crear_asignacion_multiple(hab_ids, texto_pasajeros, cantidad, responsables, inicio, termino, usuario, usuario_label):
     """RF-17 / RN-09: grupo que supera la capacidad de la habitación más grande disponible."""
     datos = parsear_pasajeros(texto_pasajeros)
+    validar_cantidad(cantidad, datos)
     n = len(datos)
     libres = {h.id: h for h in habitaciones_libres()}
     if len(set(hab_ids)) != len(hab_ids) or len(hab_ids) < 2:

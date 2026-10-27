@@ -70,6 +70,24 @@ def parsear_pasajeros(texto):
     return pasajeros
 
 
+def validar_cantidad(cantidad, pasajeros):
+    """La cantidad de pasajeros declarada debe coincidir con los ingresados: cada uno con su propio RUT."""
+    try:
+        cantidad = int(cantidad)
+    except (TypeError, ValueError):
+        raise ReglaError("Indique la cantidad de pasajeros.")
+    if cantidad < 1:
+        raise ReglaError("La cantidad de pasajeros debe ser al menos 1.")
+    n = len(pasajeros)
+    if n < cantidad:
+        raise ReglaError(
+            f"Indicó {cantidad} pasajeros pero ingresó {n}: faltan los datos de {cantidad - n}. "
+            "Cada pasajero debe tener su propia línea con Nombre;RUT."
+        )
+    if n > cantidad:
+        raise ReglaError(f"Indicó {cantidad} pasajeros pero ingresó {n}; corrija la cantidad o la lista.")
+
+
 def parsear_fechas(inicio, termino, hoy):
     """Fechas de inicio y término de la estadía ('AAAA-MM-DD'). Devuelve (inicio, termino, noches)."""
     try:

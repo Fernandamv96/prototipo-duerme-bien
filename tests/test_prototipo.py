@@ -141,6 +141,21 @@ def test_pf11_capacidad_superada_rechazada(client, encargado_user):
     assert Asignacion.objects.count() == 0
 
 
+def test_pf11c_cantidad_declarada_exige_un_rut_por_pasajero(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "210", 4)
+    r = client.post("/asignar", form(
+        client, "/asignar", **fechas(), habitacion_id=hab_id("210"), pasajeros=f"A;{R1}", cantidad="4", responsable="1",
+    ), follow=True)
+    assert "faltan los datos de 3" in r.content.decode()
+    assert not Asignacion.objects.exists()
+    r = client.post("/asignar", form(
+        client, "/asignar", **fechas(), habitacion_id=hab_id("210"), pasajeros=f"A;{R1}\nB;{R2}", cantidad="1", responsable="1",
+    ), follow=True)
+    assert "Indicó 1 pasajeros pero ingresó 2" in r.content.decode()
+    assert not Asignacion.objects.exists()
+
+
 def test_pf11b_menos_pasajeros_que_la_capacidad_se_acepta(client, encargado_user):
     login_enc(client)
     crear_hab(client, "204", 3)

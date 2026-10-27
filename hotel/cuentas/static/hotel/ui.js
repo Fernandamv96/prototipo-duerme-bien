@@ -139,6 +139,7 @@
     var lista = form.querySelector("[data-rut-check]");
     var ini = form.querySelector("input[name=fecha_inicio]"), ter = form.querySelector("input[name=fecha_termino]");
     var selHab = form.querySelector("select[name=habitacion_id]");
+    var inCant = form.querySelector("[data-cantidad]");
 
     function pasajeros() {
       var vistos = {};
@@ -180,7 +181,11 @@
         li.textContent = (p.error ? "✗ " : "✓ ") + p.nombre + " — " + (p.rut || "sin RUT") + (p.error ? " (" + p.error + ")" : "");
         lista.appendChild(li);
       });
-      area.setCustomValidity(malos.length ? "Corrija los RUT marcados en rojo." : "");
+      // Cada pasajero declarado en "Cantidad" debe tener su propia línea con Nombre;RUT
+      var cant = inCant ? parseInt(inCant.value, 10) || 0 : n;
+      var faltaCant = cant > n ? "Faltan los datos de " + (cant - n) + " pasajero(s): ingrese el Nombre;RUT de cada uno"
+        : cant && cant < n ? "Ingresó " + n + " pasajeros pero indicó " + cant : "";
+      area.setCustomValidity(malos.length ? "Corrija los RUT marcados en rojo." : faltaCant ? faltaCant + "." : "");
       if (ter && ini) { ter.min = ini.value; ter.setCustomValidity(ini.value && noc < 1 ? "La fecha de término debe ser posterior a la de inicio." : ""); }
 
       // Responsable: lista con los nombres de los pasajeros que quedan en cada habitación
@@ -202,12 +207,13 @@
       outT.textContent = "$" + (total * Math.max(noc, 0)).toLocaleString("es-CL");
       var vacias = habs.length > 1 && n > 0 ? habs.filter(function (h) { return !(porHab[h.id] || []).length; }) : [];
       var problema = malos.length ? malos.length + " RUT con error"
+        : faltaCant ? faltaCant
         : n > cap ? "Sobran " + (n - cap) + " pasajero(s)"
         : vacias.length ? "La habitación " + vacias[0].num + " quedaría vacía"
         : noc < 1 ? "Revise las fechas" : "";
       var ok = n > 0 && !problema;
-      box.classList.toggle("ok", ok); box.classList.toggle("bad", !ok && n > 0);
-      state.textContent = n === 0 ? "" : ok ? "✓ Listo para confirmar" : problema;
+      box.classList.toggle("ok", ok); box.classList.toggle("bad", !ok && (n > 0 || cant > 0));
+      state.textContent = n === 0 && !cant ? "" : ok ? "✓ Listo para confirmar" : problema;
     }
     form.addEventListener("input", update);
     form.addEventListener("change", update);
