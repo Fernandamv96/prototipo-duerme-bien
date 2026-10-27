@@ -208,9 +208,10 @@ def test_pf16b_grafico_de_ocupacion_por_cama(client, encargado_user):
     crear_hab(client, "212", 2)
     client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("211"), pasajeros=f"A;{R1}\nB;{R2}", responsable="1"))
     html = client.get("/encargado").content.decode()
-    assert "33%" in html and "2 de 6 camas" in html                # 2 huéspedes en 4 + 2 camas
+    assert "50%" in html and "1 de 2" in html                       # barra general: 1 de 2 habitaciones ocupada
+    assert 'aria-label="Habitación 211: ocupada"' in html and 'aria-label="Habitación 212: vacante"' in html
+    assert "2 de 6 camas ocupadas (33%)" in html                    # detalle: 2 huéspedes en 4 + 2 camas
     assert "Habitación 211: 2 de 4 camas ocupadas" in html
-    assert html.count('<i class="on"></i>') == 3                    # 2 camas ocupadas + muestra de la leyenda
 
 
 def test_pf12d_cada_habitacion_cobra_su_precio(client, encargado_user):

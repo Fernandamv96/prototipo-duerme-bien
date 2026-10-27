@@ -79,6 +79,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
+                "hotel.cuentas.context_processors.version_estaticos",
             ],
         },
     },

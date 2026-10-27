@@ -9,15 +9,27 @@
   <div class="db-card db-spot db-stat db-reveal"><div class="db-stat-label"><span class="db-dot green"></span>Vacantes</div><div class="db-stat-value" data-count>{{ vacantes }}</div>
     <div class="db-meter"><i data-meter="{% if total %}{% widthratio vacantes total 100 %}{% else %}0{% endif %}"></i></div></div>
 </div>
-<h2 class="db-section-title">Ocupación actual por habitación</h2>
+<h2 class="db-section-title">Ocupación actual del hotel</h2>
 <figure class="db-card db-spot db-occ db-reveal" aria-labelledby="occ-cap">
   <div class="db-occ-head">
     <div>
-      <div class="db-occ-hero">{{ pct_camas }}%</div>
-      <figcaption class="db-occ-sub" id="occ-cap">de las camas ocupadas · {{ camas_ocupadas }} de {{ camas }} camas en {{ total }} habitaciones</figcaption>
+      <div class="db-occ-hero">{{ pct_habs }}%</div>
+      <figcaption class="db-occ-sub" id="occ-cap">de las habitaciones ocupadas · {{ ocupadas }} de {{ total }}</figcaption>
     </div>
-    <ul class="db-occ-legend" aria-hidden="true"><li><i class="on"></i>Cama ocupada</li><li><i></i>Cama libre</li></ul>
+    <ul class="db-occ-legend" aria-hidden="true">
+      <li><i class="on"></i>Ocupadas <strong>{{ ocupadas }}</strong></li><li><i></i>Vacantes <strong>{{ vacantes }}</strong></li>
+    </ul>
   </div>
+  <ul class="db-occ-bar">
+  {% for f in hotel %}
+    <li class="{% if f.huespedes %}on{% endif %}" tabindex="0"
+        title="Habitación {{ f.hab.numero }}: {% if f.huespedes %}ocupada · {{ f.huespedes }} de {{ f.hab.capacidad }} camas{% else %}vacante · {{ f.hab.capacidad }} camas{% endif %}"
+        aria-label="Habitación {{ f.hab.numero }}: {% if f.huespedes %}ocupada{% else %}vacante{% endif %}">{{ f.hab.numero }}</li>
+  {% empty %}<li class="db-empty">No hay habitaciones registradas.</li>{% endfor %}
+  </ul>
+  {% if ocupacion %}
+  <details class="db-occ-more">
+    <summary>Ver camas por habitación · {{ camas_ocupadas }} de {{ camas }} camas ocupadas ({{ pct_camas }}%)</summary>
   <ul class="db-occ-rows">
   {% for f in ocupacion %}
     <li class="db-occ-row" tabindex="0" title="Habitación {{ f.hab.numero }}: {{ f.huespedes }} de {{ f.hab.capacidad }} camas ocupadas · {{ f.hab.get_orientacion_display }}"
@@ -26,8 +38,10 @@
       <span class="db-occ-beds" aria-hidden="true">{% for on in f.camas %}<i{% if on %} class="on"{% endif %}></i>{% endfor %}</span>
       <span class="db-occ-val">{{ f.huespedes }}<small> / {{ f.hab.capacidad }}</small></span>
     </li>
-  {% empty %}<li class="db-empty">No hay habitaciones registradas.</li>{% endfor %}
+  {% endfor %}
   </ul>
+  </details>
+  {% endif %}
   <a class="db-occ-link" href="{% url 'reportes:estado' %}">Ver el detalle en tabla →</a>
 </figure>
 <h2 class="db-section-title">Accesos rápidos</h2>

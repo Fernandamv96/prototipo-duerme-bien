@@ -27,6 +27,9 @@ def encargado_dashboard(request):
         request, "habitaciones/encargado_dashboard.html",
         {
             "total": total, "ocupadas": ocupadas, "vacantes": total - ocupadas, "ocupacion": ocupacion,
+            # barra general: primero las ocupadas y luego las vacantes, cada grupo por número
+            "hotel": sorted(ocupacion, key=lambda f: not f["huespedes"]),
+            "pct_habs": round(100 * ocupadas / total) if total else 0,
             "camas": camas, "camas_ocupadas": camas_ocupadas,
             "pct_camas": round(100 * camas_ocupadas / camas) if camas else 0,
         },
