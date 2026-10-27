@@ -69,6 +69,15 @@ def test_pf04c_admin_no_elimina_administrador(client, admin_user):
     assert Usuario.objects.filter(pk=admin_user.id).exists()
 
 
+def test_pf04d_contrasena_corta_avisa_en_espanol(client, admin_user):
+    login_admin(client)
+    r = client.post("/admin-hotel/usuarios", form(
+        client, "/admin-hotel/usuarios", nombre="Corta", username="corta", password="abc",
+    ), follow=True)
+    assert "La contraseña es demasiado corta" in r.content.decode()
+    assert not Usuario.objects.filter(username="corta").exists()
+
+
 def test_pf05_encargado_no_abre_gestion_de_usuarios(client, encargado_user):
     login_enc(client)
     assert client.get("/admin-hotel/usuarios").status_code == 403

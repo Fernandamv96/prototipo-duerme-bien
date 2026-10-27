@@ -10,6 +10,8 @@ superficie de acceso adicional no contemplada en el caso.
 import os
 from pathlib import Path
 
+import django
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: en producción, definir SECRET_KEY por variable de entorno.
@@ -104,6 +106,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "es-cl"
+# django.contrib.auth no está instalada (usuario propio), así que se cargan aparte sus traducciones
+# para que los avisos de los validadores de contraseña salgan en español.
+LOCALE_PATHS = [Path(django.__file__).resolve().parent / "contrib" / "auth" / "locale"]
 TIME_ZONE = "America/Santiago"
 USE_I18N = True
 USE_TZ = True
