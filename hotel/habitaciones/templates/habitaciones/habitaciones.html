@@ -20,7 +20,7 @@
 <tr><td class="db-room">{{ h.numero }}</td><td>{{ h.capacidad }} pax</td><td>{{ h.get_orientacion_display }}</td>
 <td><form method="post" action="{% url 'habitaciones:precio' h.id %}" class="d-flex gap-2 m-0">
   {% csrf_token %}
-  <input class="form-control form-control-sm" name="precio" type="number" min="1" step="1" value="{{ h.precio }}" aria-label="Precio de la habitación {{ h.numero }}" style="max-width:8rem">
+  <input class="form-control form-control-sm db-precio" name="precio" type="number" min="1" step="1" value="{{ h.precio }}" aria-label="Precio de la habitación {{ h.numero }}">
   <button class="btn btn-sm btn-outline-secondary">Guardar</button></form></td>
 <td>{% if h.ocupada %}<span class="db-badge ocupada">Ocupada</span>{% else %}<span class="db-badge vacante">Vacante</span>{% endif %}</td>
 <td class="text-end"><form method="post" action="{% url 'habitaciones:eliminar' h.id %}" class="m-0">

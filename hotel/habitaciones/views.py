@@ -13,12 +13,23 @@ from .services import cambiar_precio, eliminar_habitacion, registrar_habitacion
 
 @requiere(ROL_ENCARGADO)
 def encargado_dashboard(request):
-    activas = Habitacion.objects.filter(activa=True)
-    total = activas.count()
-    ocupadas = sum(1 for h in activas if h.ocupada())
+    # Ocupación actual por habitación: una casilla por cama, marcada si hay un huésped en ella
+    ocupacion = []
+    for h in Habitacion.objects.filter(activa=True).order_by("numero"):
+        asig = h.asignaciones.filter(estado="ACTIVA").first()
+        huespedes = asig.pasajeros.count() if asig else 0
+        ocupacion.append({"hab": h, "huespedes": huespedes, "camas": [i < huespedes for i in range(h.capacidad)]})
+    total = len(ocupacion)
+    ocupadas = sum(1 for f in ocupacion if f["huespedes"])
+    camas = sum(f["hab"].capacidad for f in ocupacion)
+    camas_ocupadas = sum(f["huespedes"] for f in ocupacion)
     return render(
         request, "habitaciones/encargado_dashboard.html",
-        {"total": total, "ocupadas": ocupadas, "vacantes": total - ocupadas},
+        {
+            "total": total, "ocupadas": ocupadas, "vacantes": total - ocupadas, "ocupacion": ocupacion,
+            "camas": camas, "camas_ocupadas": camas_ocupadas,
+            "pct_camas": round(100 * camas_ocupadas / camas) if camas else 0,
+        },
     )
 
 

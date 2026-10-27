@@ -221,6 +221,29 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); }
 .db-badge.vacante::before { animation: db-pulse 2s infinite; }
 @keyframes db-pulse { 50% { opacity: .35; } }
 .db-room { font-weight: 700; font-variant-numeric: tabular-nums; }
+.db-precio { max-width: 8rem; }
+
+/* Gráfico de ocupación actual: una casilla por cama (relleno = ocupada) */
+.db-occ { margin: 0 0 1.75rem; padding: 1.4rem 1.5rem; }
+.db-occ-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.db-occ-hero { font-size: 3rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.db-occ-sub { color: var(--db-muted); font-size: .85rem; margin-top: .4rem; }
+.db-occ-legend { list-style: none; margin: 0; padding: 0; display: flex; gap: 1rem; color: var(--db-muted); font-size: .8rem; }
+.db-occ-legend li { display: flex; align-items: center; gap: .4rem; }
+.db-occ-rows { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: .15rem; }
+.db-occ-row { display: grid; grid-template-columns: 4rem max-content 1fr; align-items: center; gap: 1rem; padding: .45rem .6rem; border-radius: 10px; outline: none; transition: background .2s; }
+.db-occ-row:hover, .db-occ-row:focus-visible { background: rgba(255,255,255,.04); }
+.db-occ-row:focus-visible { box-shadow: 0 0 0 2px var(--db-violet); }
+.db-occ-beds { display: flex; flex-wrap: wrap; gap: 2px; }
+.db-occ-beds i, .db-occ-legend i { display: block; width: 18px; height: 18px; border-radius: 4px; background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px var(--db-border-strong); }
+.db-occ-beds i.on, .db-occ-legend i.on { background: var(--db-violet); box-shadow: none; }
+.db-occ-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.db-occ-val small { color: var(--db-muted); font-weight: 500; font-size: .85em; }
+.db-occ-link { font-size: .85rem; text-decoration: none; }
+@media (forced-colors: active) {
+  .db-occ-beds i, .db-occ-legend i { border: 1px solid CanvasText; }
+  .db-occ-beds i.on, .db-occ-legend i.on { background: CanvasText; }
+}
 .db-mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .85rem; color: #cfcde3; }
 .db-star { color: #fbbf24; filter: drop-shadow(0 0 6px rgba(251,191,36,.6)); }
 
