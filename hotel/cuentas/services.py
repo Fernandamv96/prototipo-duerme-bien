@@ -26,3 +26,19 @@ def crear_usuario(nombre, username, password, usuario_label):
     u.save()
     auditar(usuario_label, "USUARIO_CREADO", f"Encargado '{username}' creado")
     return u
+
+
+@transaction.atomic
+def eliminar_usuario(u, usuario_label):
+    """El Administrador elimina Encargados. Si ya registró asignaciones se hace baja lógica
+    (activo=False) para conservar el historial; si no, se borra la cuenta."""
+    if u.rol != ROL_ENCARGADO:
+        raise ReglaError("Solo se pueden eliminar cuentas de Encargado de Hotel.")
+    if u.asignacion_set.exists():
+        u.activo = False
+        u.save(update_fields=["activo"])
+        auditar(usuario_label, "USUARIO_ELIMINADO", f"Encargado '{u.username}' dado de baja (historial conservado)")
+        return False
+    u.delete()
+    auditar(usuario_label, "USUARIO_ELIMINADO", f"Encargado '{u.username}' eliminado")
+    return True

@@ -12,9 +12,12 @@
   <div class="col-12"><button class="btn btn-primary">Registrar encargado</button></div>
 </form></div></div>
 <div class="db-card db-table-wrap db-reveal">
-<table class="table"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th></tr></thead>
+<table class="table"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th></th></tr></thead>
 <tbody>
-{% for u in encargados %}<tr><td><strong>{{ u.nombre }}</strong></td><td class="db-mono">{{ u.username }}</td><td><span class="db-badge vacante">{{ u.rol }}</span></td></tr>
-{% empty %}<tr><td colspan="3" class="db-empty">Aún no hay encargados registrados.</td></tr>{% endfor %}
+{% for u in encargados %}<tr><td><strong>{{ u.nombre }}</strong></td><td class="db-mono">{{ u.username }}</td><td><span class="db-badge vacante">{{ u.rol }}</span></td>
+<td class="text-end"><form method="post" action="{% url 'cuentas:admin_eliminar_usuario' u.id %}" class="m-0">
+  {% csrf_token %}
+  <button class="btn btn-sm btn-outline-danger">Eliminar</button></form></td></tr>
+{% empty %}<tr><td colspan="4" class="db-empty">Aún no hay encargados registrados.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

@@ -1,7 +1,7 @@
 """Vistas - módulo cuentas (RF-01 a RF-06)."""
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
-from django.http import HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.urls import Resolver404, resolve
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -10,7 +10,7 @@ from hotel.reglas import ReglaError
 
 from .models import ROL_ADMIN, ROL_ENCARGADO, Auditoria, Usuario, auditar
 from .seguridad import cerrar_sesion, iniciar_sesion, requiere
-from .services import crear_usuario
+from .services import crear_usuario, eliminar_usuario
 
 
 def index(request):
@@ -94,7 +94,7 @@ def logout(request):
 
 @requiere(ROL_ADMIN)
 def admin_dashboard(request):
-    encargados = Usuario.objects.filter(rol=ROL_ENCARGADO).count()
+    encargados = Usuario.objects.filter(rol=ROL_ENCARGADO, activo=True).count()
     return render(request, "cuentas/admin_dashboard.html", {"encargados": encargados})
 
 
@@ -111,8 +111,26 @@ def admin_usuarios(request):
         except ReglaError as e:
             messages.error(request, str(e))
         return redirect("cuentas:admin_usuarios")
-    encargados = Usuario.objects.filter(rol=ROL_ENCARGADO).order_by("username")
+    encargados = Usuario.objects.filter(rol=ROL_ENCARGADO, activo=True).order_by("username")
     return render(request, "cuentas/admin_usuarios.html", {"encargados": encargados})
+
+
+@requiere(ROL_ADMIN)
+def admin_eliminar_usuario(request, user_id):
+    if request.method != "POST":
+        return redirect("cuentas:admin_usuarios")
+    try:
+        u = Usuario.objects.get(pk=user_id, rol=ROL_ENCARGADO, activo=True)
+    except Usuario.DoesNotExist:
+        raise Http404
+    try:
+        if eliminar_usuario(u, request.hotel_user.username):
+            messages.success(request, f"Encargado '{u.username}' eliminado.")
+        else:
+            messages.success(request, f"Encargado '{u.username}' dado de baja; su historial se conserva.")
+    except ReglaError as e:
+        messages.error(request, str(e))
+    return redirect("cuentas:admin_usuarios")
 
 
 @requiere(ROL_ADMIN)

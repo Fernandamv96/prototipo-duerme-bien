@@ -10,7 +10,7 @@ PRECIO_POR_PASAJERO = 40000          # RN-07: valor fijo por pasajero y por noch
 MAX_NOCHES = 90                      # tope razonable de estadía para evitar errores de digitación
 MIN_PASSWORD = 8
 
-RUT_RE = re.compile(r"^(\d{7,8})-([0-9K])$")
+RUT_RE = re.compile(r"^(\d{7,8})-?([0-9K])$")   # el guion es opcional
 
 
 class ReglaError(Exception):
@@ -19,18 +19,33 @@ class ReglaError(Exception):
 
 def normalizar_rut(rut):
     """Devuelve el RUT como '12345678-K' si el dígito verificador es válido; si no, None (RF-13)."""
-    limpio = (rut or "").replace(".", "").replace(" ", "").upper()
-    m = RUT_RE.match(limpio)
+    m = RUT_RE.match(_limpiar_rut(rut))
     if not m:
         return None
     cuerpo, dv = m.groups()
+    return f"{int(cuerpo)}-{dv}" if dv == digito_verificador(cuerpo) else None
+
+
+def _limpiar_rut(rut):
+    return (rut or "").replace(".", "").replace(" ", "").upper()
+
+
+def digito_verificador(cuerpo):
+    """Dígito verificador (módulo 11) del cuerpo numérico de un RUT."""
     suma, factor = 0, 2
     for d in reversed(cuerpo):
         suma += int(d) * factor
         factor = 2 if factor == 7 else factor + 1
     resto = 11 - suma % 11
-    esperado = {11: "0", 10: "K"}.get(resto, str(resto))
-    return f"{int(cuerpo)}-{dv}" if dv == esperado else None
+    return {11: "0", 10: "K"}.get(resto, str(resto))
+
+
+def motivo_rut_invalido(rut):
+    """Explica por qué un RUT no es válido, para que el usuario pueda corregirlo."""
+    m = RUT_RE.match(_limpiar_rut(rut))
+    if not m:
+        return "use el formato 12345678-5"
+    return f"el dígito verificador debería ser {digito_verificador(m.group(1))}"
 
 
 def parsear_pasajeros(texto):
@@ -46,7 +61,7 @@ def parsear_pasajeros(texto):
             raise ReglaError("Nombre y RUT del pasajero son obligatorios (RF-13).")
         rut_n = normalizar_rut(rut)
         if rut_n is None:
-            raise ReglaError(f"RUT inválido: {rut}.")
+            raise ReglaError(f"RUT inválido: {rut} ({motivo_rut_invalido(rut)}).")
         if any(r == rut_n for _n, r in pasajeros):
             raise ReglaError(f"El RUT {rut_n} está repetido en la lista de pasajeros.")
         pasajeros.append((nombre[:150], rut_n))

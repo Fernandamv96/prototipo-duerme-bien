@@ -50,6 +50,25 @@ def test_pf04_admin_registra_encargado(client, admin_user):
     assert u.rol == ROL_ENCARGADO and u.password_hash != "Clave#segura1"
 
 
+def test_pf04b_admin_elimina_encargado(client, admin_user):
+    login_admin(client)
+    client.post("/admin-hotel/usuarios", form(
+        client, "/admin-hotel/usuarios", nombre="Nuevo", username="nuevo", password="Clave#segura1",
+    ))
+    uid = Usuario.objects.get(username="nuevo").id
+    r = client.post(f"/admin-hotel/usuarios/{uid}/eliminar", form(client, "/admin-hotel/usuarios"))
+    assert r.status_code == 302
+    assert not Usuario.objects.filter(username="nuevo").exists()
+    assert Auditoria.objects.filter(accion="USUARIO_ELIMINADO").exists()
+
+
+def test_pf04c_admin_no_elimina_administrador(client, admin_user):
+    login_admin(client)
+    r = client.post(f"/admin-hotel/usuarios/{admin_user.id}/eliminar", form(client, "/admin-hotel/usuarios"))
+    assert r.status_code == 404
+    assert Usuario.objects.filter(pk=admin_user.id).exists()
+
+
 def test_pf05_encargado_no_abre_gestion_de_usuarios(client, encargado_user):
     login_enc(client)
     assert client.get("/admin-hotel/usuarios").status_code == 403

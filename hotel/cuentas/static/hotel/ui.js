@@ -97,16 +97,25 @@
   }
 
   // RUT chileno: misma regla que hotel/reglas.py (normalizar_rut). Devuelve "12345678-K" o null.
-  function normalizarRut(rut) {
-    var m = (rut || "").replace(/[.\s]/g, "").toUpperCase().match(/^(\d{7,8})-([0-9K])$/);
-    if (!m) return null;
+  function partesRut(rut) {
+    return (rut || "").replace(/[.\s]/g, "").toUpperCase().match(/^(\d{7,8})-?([0-9K])$/);
+  }
+  function digitoVerificador(cuerpo) {
     var suma = 0, factor = 2;
-    for (var i = m[1].length - 1; i >= 0; i--) {
-      suma += parseInt(m[1][i], 10) * factor;
+    for (var i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo[i], 10) * factor;
       factor = factor === 7 ? 2 : factor + 1;
     }
-    var resto = 11 - (suma % 11), esperado = resto === 11 ? "0" : resto === 10 ? "K" : String(resto);
-    return m[2] === esperado ? parseInt(m[1], 10) + "-" + m[2] : null;
+    var resto = 11 - (suma % 11);
+    return resto === 11 ? "0" : resto === 10 ? "K" : String(resto);
+  }
+  function normalizarRut(rut) {
+    var m = partesRut(rut);
+    return m && m[2] === digitoVerificador(m[1]) ? parseInt(m[1], 10) + "-" + m[2] : null;
+  }
+  function motivoRutInvalido(rut) {
+    var m = partesRut(rut);
+    return m ? "el dígito verificador debería ser " + digitoVerificador(m[1]) : "use el formato 12345678-5";
   }
 
   function opciones(sel, nombres, vacio) {
@@ -139,7 +148,7 @@
         var p = { nombre: nombre || "(sin nombre)", rut: rut, error: "" };
         var rutN = normalizarRut(rut);
         if (partes.length < 2 || !nombre || !rut) p.error = "Use el formato Nombre;RUT";
-        else if (!rutN) p.error = "RUT inválido";
+        else if (!rutN) p.error = "RUT inválido: " + motivoRutInvalido(rut);
         else if (vistos[rutN]) p.error = "RUT repetido";
         else vistos[rutN] = true;
         return p;
