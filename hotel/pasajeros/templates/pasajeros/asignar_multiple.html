@@ -3,8 +3,8 @@
 <h1 class="db-title" data-split>Asignación de grupo en varias habitaciones</h1>
 <p class="db-subtitle">Use esta opción solo si el grupo supera la capacidad máxima disponible
 (actualmente <strong>{{ max_disp }}</strong>). La suma de capacidades de las habitaciones
-elegidas debe ser igual o mayor al total de pasajeros. Costo: <strong>${{ precio }}</strong> por pasajero y por noche.</p>
-<form method="post" action="{% url 'pasajeros:asignar_multiple' %}" class="db-card db-spot p-4 db-reveal" data-asignacion data-precio="{{ precio }}">
+elegidas debe ser igual o mayor al total de pasajeros. Cada habitación cobra su propio precio por pasajero y por noche.</p>
+<form method="post" action="{% url 'pasajeros:asignar_multiple' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
   <div class="row g-3 mb-4">
     <div class="col-md-3"><label class="form-label" for="g-ini">Fecha de inicio</label>
@@ -19,9 +19,9 @@ elegidas debe ser igual o mayor al total de pasajeros. Costo: <strong>${{ precio
   <div class="db-rooms">
   {% for h in libres %}
     <label class="db-room-card">
-      <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-num="{{ h.numero }}" aria-label="Habitación {{ h.numero }}">
+      <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}" data-num="{{ h.numero }}" aria-label="Habitación {{ h.numero }}">
       <div class="db-room">{{ h.numero }}</div>
-      <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }}</div>
+      <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }} · ${{ h.precio }}</div>
       <small>Responsable de esta habitación</small>
       <select class="form-select form-select-sm" name="responsable_{{ h.id }}" data-responsable-hab="{{ h.id }}" aria-label="Responsable de la habitación {{ h.numero }}">
         <option value="1">Primer pasajero asignado</option>

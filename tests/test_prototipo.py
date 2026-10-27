@@ -167,6 +167,31 @@ def test_pf12b_cobro_por_noche_con_fechas(client, encargado_user):
     assert "$240000" in client.get("/hospedados").content.decode()
 
 
+def test_pf12d_cada_habitacion_cobra_su_precio(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "206", 2, precio=55000)
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=2), habitacion_id=hab_id("206"), pasajeros=f"A;{R1}\nB;{R2}", responsable="1"))
+    assert Asignacion.objects.get().costo_total == 2 * 2 * 55000
+
+
+def test_pf12e_cambio_de_precio_no_altera_asignaciones_registradas(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "207", 1)
+    hid = hab_id("207")
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hid, pasajeros=f"A;{R1}", responsable="1"))
+    r = client.post(f"/habitaciones/{hid}/precio", form(client, "/habitaciones", precio="65.000"))
+    assert r.status_code == 302
+    assert Habitacion.objects.get(pk=hid).precio == 65000
+    assert Asignacion.objects.get().costo_total == 40000
+    assert Auditoria.objects.filter(accion="PRECIO_CAMBIADO").exists()
+
+
+def test_pf12f_precio_invalido_rechazado(client, encargado_user):
+    login_enc(client)
+    r = crear_hab(client, "208", 2, precio=0)
+    assert r.status_code == 302 and not Habitacion.objects.filter(numero="208").exists()
+
+
 def test_pf12c_fechas_invalidas_rechazadas(client, encargado_user):
     login_enc(client)
     crear_hab(client, "206", 1)

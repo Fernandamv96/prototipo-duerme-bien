@@ -70,8 +70,10 @@ def form(client, url, **data):
     return data
 
 
-def crear_hab(client, numero, cap, ori="MAR"):
-    return client.post("/habitaciones", form(client, "/habitaciones", numero=numero, capacidad=cap, orientacion=ori))
+def crear_hab(client, numero, cap, ori="MAR", precio=40000):
+    return client.post("/habitaciones", form(
+        client, "/habitaciones", numero=numero, capacidad=cap, orientacion=ori, precio=precio,
+    ))
 
 
 def hab_id(numero):

@@ -9,16 +9,16 @@ from django.utils import timezone
 from hotel.cuentas.models import ROL_ENCARGADO
 from hotel.cuentas.seguridad import requiere
 from hotel.habitaciones.services import habitaciones_libres
-from hotel.reglas import PRECIO_POR_PASAJERO, ReglaError
+from hotel.reglas import ReglaError
 
 from .models import Asignacion
 from .services import crear_asignacion, crear_asignacion_multiple, registrar_salida
 
 
 def _ctx_estadia():
-    """Precio y fechas por defecto (hoy → mañana) para los formularios de asignación."""
+    """Fechas por defecto (hoy → mañana) para los formularios de asignación."""
     hoy = timezone.localdate()
-    return {"precio": PRECIO_POR_PASAJERO, "hoy": hoy.isoformat(), "manana": (hoy + timedelta(days=1)).isoformat()}
+    return {"hoy": hoy.isoformat(), "manana": (hoy + timedelta(days=1)).isoformat()}
 
 
 @requiere(ROL_ENCARGADO)

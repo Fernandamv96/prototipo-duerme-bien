@@ -26,7 +26,7 @@ def _validar_no_hospedados(datos):
 def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuario_label):
     f_ini, f_ter, noches = fechas
     pasajeros = [_pasajero_por_rut(n, r) for n, r in datos]
-    costo = calcular_costo(len(pasajeros), noches)                     # RN-07
+    costo = calcular_costo(len(pasajeros), noches, hab.precio)         # RN-07
     asig = Asignacion.objects.create(
         habitacion=hab,
         responsable=pasajeros[idx_responsable - 1],                    # RN-10

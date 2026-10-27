@@ -1,6 +1,6 @@
 """Servicios de dominio - módulo habitaciones (RF-07 a RF-11)."""
 from hotel.cuentas.models import auditar
-from hotel.reglas import ReglaError
+from hotel.reglas import ReglaError, parsear_precio
 
 from .models import ORIENTACIONES, Habitacion
 
@@ -11,7 +11,7 @@ def habitaciones_libres():
     return [h for h in Habitacion.objects.filter(activa=True).order_by("numero") if not h.ocupada()]
 
 
-def registrar_habitacion(numero, capacidad, orientacion, usuario_label):
+def registrar_habitacion(numero, capacidad, orientacion, precio, usuario_label):
     numero = (numero or "").strip()
     try:
         capacidad = int(capacidad)
@@ -21,9 +21,17 @@ def registrar_habitacion(numero, capacidad, orientacion, usuario_label):
         raise ReglaError("Número, capacidad (>0) y orientación son obligatorios (RF-09).")
     if Habitacion.objects.filter(numero=numero).exists():
         raise ReglaError(f"La habitación {numero} ya existe (RN-03).")
-    hab = Habitacion.objects.create(numero=numero, capacidad=capacidad, orientacion=orientacion)
-    auditar(usuario_label, "HABITACION_CREADA", f"Habitación {numero}, cap. {capacidad}, {orientacion}")
+    precio = parsear_precio(precio)
+    hab = Habitacion.objects.create(numero=numero, capacidad=capacidad, orientacion=orientacion, precio=precio)
+    auditar(usuario_label, "HABITACION_CREADA", f"Habitación {numero}, cap. {capacidad}, {orientacion}, ${precio}")
     return hab
+
+
+def cambiar_precio(hab, precio, usuario_label):
+    """El nuevo precio rige para las próximas asignaciones; las ya registradas mantienen su costo."""
+    anterior, hab.precio = hab.precio, parsear_precio(precio)
+    hab.save(update_fields=["precio"])
+    auditar(usuario_label, "PRECIO_CAMBIADO", f"Habitación {hab.numero}: ${anterior} → ${hab.precio}")
 
 
 def eliminar_habitacion(hab, usuario_label):

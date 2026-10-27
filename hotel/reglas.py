@@ -6,7 +6,7 @@ Se mantienen separadas de los modelos para que puedan probarse de forma aislada
 import re
 from datetime import date
 
-PRECIO_POR_PASAJERO = 40000          # RN-07: valor fijo por pasajero y por noche, definido una sola vez
+PRECIO_POR_PASAJERO = 40000          # RN-07: precio por defecto (por pasajero y por noche) de una habitación nueva
 MAX_NOCHES = 90                      # tope razonable de estadía para evitar errores de digitación
 MIN_PASSWORD = 8
 
@@ -86,6 +86,17 @@ def parsear_fechas(inicio, termino, hoy):
     return f_ini, f_ter, noches
 
 
-def calcular_costo(n_pasajeros, noches):
-    """RN-07: pasajeros × noches × precio por pasajero."""
-    return n_pasajeros * noches * PRECIO_POR_PASAJERO
+def calcular_costo(n_pasajeros, noches, precio):
+    """RN-07: pasajeros × noches × precio por pasajero de la habitación."""
+    return n_pasajeros * noches * precio
+
+
+def parsear_precio(precio):
+    """Precio por pasajero y por noche: entero positivo en pesos (se aceptan puntos de miles)."""
+    try:
+        valor = int(str(precio or "").replace(".", "").replace("$", "").strip())
+    except ValueError:
+        raise ReglaError("El precio debe ser un número entero en pesos.")
+    if valor <= 0:
+        raise ReglaError("El precio debe ser mayor que 0.")
+    return valor

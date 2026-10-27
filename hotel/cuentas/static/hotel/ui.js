@@ -134,7 +134,6 @@
     var area = form.querySelector("textarea[name=pasajeros]");
     var box = form.querySelector(".db-counter");
     if (!area || !box) return;
-    var precio = parseInt(form.getAttribute("data-precio"), 10) || 0;
     var outP = box.querySelector("[data-n-pasajeros]"), outC = box.querySelector("[data-n-capacidad]"), state = box.querySelector(".db-state");
     var outN = box.querySelector("[data-n-noches]"), outT = box.querySelector("[data-total]");
     var lista = form.querySelector("[data-rut-check]");
@@ -160,9 +159,13 @@
     }
     // Habitaciones elegidas en el mismo orden que usa el servidor: mayor capacidad primero, luego número
     function habitaciones() {
-      if (selHab) { var o = selHab.options[selHab.selectedIndex]; return o ? [{ cap: parseInt(o.getAttribute("data-cap"), 10) || 0 }] : []; }
+      if (selHab) {
+        var o = selHab.options[selHab.selectedIndex];
+        return o ? [{ cap: parseInt(o.getAttribute("data-cap"), 10) || 0, precio: parseInt(o.getAttribute("data-precio"), 10) || 0 }] : [];
+      }
       return $$("input[name=habitacion_ids]:checked", form).map(function (cb) {
-        return { id: cb.value, num: cb.getAttribute("data-num"), cap: parseInt(cb.getAttribute("data-cap"), 10) || 0 };
+        return { id: cb.value, num: cb.getAttribute("data-num"), cap: parseInt(cb.getAttribute("data-cap"), 10) || 0,
+                 precio: parseInt(cb.getAttribute("data-precio"), 10) || 0 };
       }).sort(function (x, y) { return y.cap - x.cap || (x.num < y.num ? -1 : x.num > y.num ? 1 : 0); });
     }
     function update() {
@@ -193,7 +196,10 @@
       }
 
       outP.textContent = n; outC.textContent = cap; outN.textContent = noc > 0 ? noc : 0;
-      outT.textContent = "$" + (n * Math.max(noc, 0) * precio).toLocaleString("es-CL");
+      // Cada habitación cobra su precio por los pasajeros que le tocan (mismo reparto que el servidor)
+      var resto = n, total = selHab ? n * ((habs[0] || {}).precio || 0)
+        : habs.reduce(function (s, h) { var k = Math.min(resto, h.cap); resto -= k; return s + k * h.precio; }, 0);
+      outT.textContent = "$" + (total * Math.max(noc, 0)).toLocaleString("es-CL");
       var vacias = habs.length > 1 && n > 0 ? habs.filter(function (h) { return !(porHab[h.id] || []).length; }) : [];
       var problema = malos.length ? malos.length + " RUT con error"
         : n > cap ? "Sobran " + (n - cap) + " pasajero(s)"
