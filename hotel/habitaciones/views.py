@@ -15,8 +15,8 @@ from .services import cambiar_precio, eliminar_habitacion, registrar_habitacion
 
 # Paletas de las ilustraciones (fotos ficticias hasta tener fotos reales); cada habitación usa una según su número
 PALETAS_FOTO = (
-    {"muro1": "#2a0f1a", "muro2": "#3d1626", "piso": "#1c0a12", "cielo1": "#1e1b4b", "cielo2": "#4c1d95", "mar": "#1e3a8a",
-     "edif": "#1f1633", "marco": "#6b3a4e", "madera": "#5b2a3c", "colchon": "#f1e9ee", "manta1": "#be185d", "manta2": "#f472b6"},
+    {"muro1": "#17142b", "muro2": "#211d3d", "piso": "#100e20", "cielo1": "#1e1b4b", "cielo2": "#312e81", "mar": "#1e3a8a",
+     "edif": "#1f1a3a", "marco": "#4c4677", "madera": "#4c3d8f", "colchon": "#ecebf5", "manta1": "#8b5cf6", "manta2": "#22d3ee"},
     {"muro1": "#1f1426", "muro2": "#2e1d38", "piso": "#140c19", "cielo1": "#0c4a6e", "cielo2": "#38bdf8", "mar": "#0369a1",
      "edif": "#1e293b", "marco": "#5b4470", "madera": "#4a3460", "colchon": "#ede9fe", "manta1": "#7c3aed", "manta2": "#a78bfa"},
     {"muro1": "#2b1610", "muro2": "#3f2218", "piso": "#1d0f0a", "cielo1": "#7c2d12", "cielo2": "#f59e0b", "mar": "#155e75",

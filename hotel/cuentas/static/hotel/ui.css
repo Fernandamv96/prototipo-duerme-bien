@@ -4,23 +4,23 @@
  * se reimplementan en CSS/JS propio para respetar la CSP estricta (script-src 'self', sin estilos inline).
  */
 :root {
-  --db-bg: #13060c;                          /* burdeo muy oscuro */
-  --db-surface: rgba(44, 14, 26, 0.62);
-  --db-surface-strong: rgba(56, 18, 33, 0.88);
-  --db-nav-bg: rgba(28, 8, 16, 0.62);
-  --db-option-bg: #2a0c18;
+  --db-bg: #07060f;
+  --db-surface: rgba(22, 20, 38, 0.62);
+  --db-surface-strong: rgba(30, 27, 52, 0.85);
+  --db-nav-bg: rgba(14, 12, 26, 0.6);
+  --db-option-bg: #15132a;
   --db-border: rgba(255, 255, 255, 0.08);
   --db-border-strong: rgba(255, 255, 255, 0.16);
   --db-fill: rgba(255, 255, 255, 0.04);       /* rellenos sutiles de campos, casillas y filas */
   --db-fill-strong: rgba(255, 255, 255, 0.07);
   --db-grid-line: rgba(255, 255, 255, 0.035);
-  --db-text: #f4eaee;
-  --db-muted: #b49ba7;
-  --db-label: #e3d2da;
-  --db-placeholder: #8a6d7a;
-  --db-accent-text: #d8c8fd;
-  --db-aurora-1: #be123c;
-  --db-aurora-2: #8b5cf6;
+  --db-text: #ecebf5;
+  --db-muted: #9a97b3;
+  --db-label: #cfcde3;
+  --db-placeholder: #6f6c88;
+  --db-accent-text: #c4b5fd;
+  --db-aurora-1: #8b5cf6;
+  --db-aurora-2: #22d3ee;
   --db-aurora-3: #f472b6;
   --db-violet: #8b5cf6;
   --db-cyan: #22d3ee;
@@ -41,28 +41,28 @@
 
 /* Tema claro: mismos componentes, tokens propios (no es una inversión automática del oscuro) */
 :root[data-theme="light"] {
-  --db-bg: #fbf4f6;
+  --db-bg: #f6f5fc;
   --db-surface: rgba(255, 255, 255, 0.78);
   --db-surface-strong: #ffffff;
   --db-nav-bg: rgba(255, 255, 255, 0.72);
   --db-option-bg: #ffffff;
-  --db-border: rgba(80, 16, 40, 0.10);
-  --db-border-strong: rgba(80, 16, 40, 0.20);
-  --db-fill: rgba(80, 16, 40, 0.04);
-  --db-fill-strong: rgba(80, 16, 40, 0.08);
-  --db-grid-line: rgba(80, 16, 40, 0.05);
-  --db-text: #2b0f1a;
-  --db-muted: #7a5b68;
-  --db-label: #4a2433;
-  --db-placeholder: #a38894;
+  --db-border: rgba(40, 30, 90, 0.10);
+  --db-border-strong: rgba(40, 30, 90, 0.20);
+  --db-fill: rgba(40, 30, 90, 0.04);
+  --db-fill-strong: rgba(40, 30, 90, 0.08);
+  --db-grid-line: rgba(40, 30, 90, 0.05);
+  --db-text: #1c1830;
+  --db-muted: #635e7d;
+  --db-label: #36304f;
+  --db-placeholder: #9a95b3;
   --db-accent-text: #6d28d9;
   --db-violet: #7c3aed;
   --db-cyan: #0e7490;
   --db-pink: #db2777;
   --db-green: #047857;
   --db-red: #be123c;
-  --db-aurora-1: #fda4af;
-  --db-aurora-2: #c4b5fd;
+  --db-aurora-1: #c4b5fd;
+  --db-aurora-2: #a5f3fc;
   --db-aurora-3: #fbcfe8;
   --bs-link-color-rgb: 109, 40, 217;
   --bs-link-hover-color-rgb: 14, 116, 144;
@@ -371,11 +371,11 @@ main.container { max-width: 1240px; }
 :root[data-theme="light"] .db-theme-btn .luna { display: none; }
 .db-nav-end { display: flex; align-items: center; gap: .5rem; }
 :root[data-theme="light"] .db-aurora span { mix-blend-mode: multiply; opacity: .35; }
-:root[data-theme="light"] .db-card, :root[data-theme="light"] .card { box-shadow: 0 18px 40px -28px rgba(80,16,40,.35); }
+:root[data-theme="light"] .db-card, :root[data-theme="light"] .card { box-shadow: 0 18px 40px -28px rgba(40,30,90,.35); }
 :root[data-theme="light"] .db-links a.active { color: var(--db-text); }
 :root[data-theme="light"] .btn-outline-danger:hover, :root[data-theme="light"] .btn-outline-secondary:hover,
 :root[data-theme="light"] .btn-outline-primary:hover, :root[data-theme="light"] .btn-ghost:hover { color: var(--db-text); }
-:root[data-theme="light"] .db-gradient-text { background-image: linear-gradient(90deg, #7c3aed, #be123c, #db2777, #7c3aed); }
+:root[data-theme="light"] .db-gradient-text { background-image: linear-gradient(90deg, #7c3aed, #0e7490, #db2777, #7c3aed); }
 :root[data-theme="light"] .alert-success { color: #065f46; }
 :root[data-theme="light"] .alert-danger { color: #9f1239; }
 :root[data-theme="light"] .alert-info, :root[data-theme="light"] .db-goto { color: #155e75; }
