@@ -165,7 +165,11 @@
   });
 
   function telefonoValido(t) { return /^\+?\d{8,15}$/.test((t || "").replace(/[\s\-()]/g, "")); }
-  function correoValido(c) { return !c || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c); }
+  // misma regla que hotel/reglas.py (correo_valido)
+  function correoValido(c) {
+    return !c || (c.length <= 254 && c.indexOf("..") < 0 &&
+      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/.test(c));
+  }
 
   // Asignación simple y de grupo: filas de pasajeros, validación en vivo, responsable/representante, capacidad y total
   $$("[data-asignacion]").forEach(function (form) {

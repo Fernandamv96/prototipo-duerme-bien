@@ -540,3 +540,18 @@ def test_pf23_ajustar_precios_con_tarifa_de_referencia(encargado_user):
     assert Habitacion.objects.get(pk=h1.pk).precio == 230000
     call_command("ajustar_precios", aplicar=True)
     assert (Habitacion.objects.get(pk=h1.pk).precio, Habitacion.objects.get(pk=h2.pk).precio) == (34000, 42000)
+
+
+def test_ps09_validacion_estricta_de_correo():
+    from hotel.reglas import correo_valido
+    for bueno in ("ana@correo.cl", "ana.soto+hotel@mail.example.com", "a_b-c%1@sub-dominio.co"):
+        assert correo_valido(bueno), bueno
+    for malo in ('a"b@correo.cl', "a b@correo.cl", "ana@correo", "ana@@correo.cl", "ana..soto@correo.cl",
+                 "ana@-correo.cl", "<script>@x.cl", "ana@correo.c", "a@" + "x" * 250 + ".cl", ""):
+        assert not correo_valido(malo), malo
+
+
+def test_ps10_recursos_externos_con_integridad_sri(client):
+    html = client.get("/login").content.decode()
+    enlaces = __import__("re").findall(r'<link rel="stylesheet" href="https://[^>]+>', html)
+    assert enlaces and all('integrity="sha384-' in e and 'crossorigin="anonymous"' in e for e in enlaces)

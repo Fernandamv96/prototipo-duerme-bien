@@ -12,7 +12,9 @@ MIN_PASSWORD = 8
 
 RUT_RE = re.compile(r"^(\d{7,8})-?([0-9K])$")   # el guion es opcional
 TELEFONO_RE = re.compile(r"^\+?\d{8,15}$")
-CORREO_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+# Correo: parte local con letras, números y . _ % + - ; dominio con etiquetas separadas por puntos y extensión de 2+ letras
+CORREO_RE = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$")
+MAX_CORREO = 254
 FECHA_RE = re.compile(r"^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$")   # DD-MM-AAAA o DD/MM/AAAA
 
 
@@ -59,7 +61,8 @@ def normalizar_telefono(telefono):
 
 
 def correo_valido(correo):
-    return bool(CORREO_RE.match(correo or ""))
+    correo = correo or ""
+    return len(correo) <= MAX_CORREO and ".." not in correo and bool(CORREO_RE.match(correo))
 
 
 def parsear_pasajeros(nombres, ruts, telefonos, correos=None):
