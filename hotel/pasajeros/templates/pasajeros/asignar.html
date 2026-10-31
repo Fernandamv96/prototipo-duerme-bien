@@ -1,28 +1,32 @@
 {% extends "base.html" %}{% block content %}
 <span class="db-eyebrow">Asignación</span>
 <h1 class="db-title" data-split>Asignar habitación</h1>
-<p class="db-subtitle">El costo es el precio de la habitación por pasajero y por noche. Indique la cantidad de pasajeros e ingrese cada uno en su propia línea con el formato <code>Nombre;RUT</code>.
-La cantidad de pasajeros puede ser igual o menor a la capacidad de la habitación.</p>
+<p class="db-subtitle">El costo es el precio de la habitación por pasajero y por noche. Indique la cantidad de pasajeros y complete los datos de cada uno.
+La cantidad puede ser igual o menor a la capacidad de la habitación.</p>
 {% if libres %}
 <form method="post" action="{% url 'pasajeros:asignar' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
-  <div class="row g-3">
-    <div class="col-md-4"><label class="form-label" for="a-hab">Habitación</label>
-      <select class="form-select" id="a-hab" name="habitacion_id" required>
-      {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }}, ${{ h.precio }})</option>{% endfor %}
-      </select></div>
-    <div class="col-md-2"><label class="form-label" for="a-cant">Cantidad de pasajeros</label>
-      <input class="form-control" id="a-cant" type="number" name="cantidad" min="1" step="1" required data-cantidad></div>
-    <div class="col-md-3"><label class="form-label" for="a-ini">Fecha de inicio</label>
-      <input class="form-control" id="a-ini" type="date" name="fecha_inicio" value="{{ hoy }}" min="{{ hoy }}" required></div>
-    <div class="col-md-3"><label class="form-label" for="a-ter">Fecha de término</label>
-      <input class="form-control" id="a-ter" type="date" name="fecha_termino" value="{{ manana }}" min="{{ manana }}" required></div>
-    <div class="col-md-8"><label class="form-label" for="a-pas">Pasajeros</label>
-      <textarea class="form-control db-mono" id="a-pas" name="pasajeros" rows="5" placeholder="Juan Pérez;12345678-5" required></textarea>
-      <ul class="db-rut-check" data-rut-check aria-live="polite"></ul></div>
-    <div class="col-md-4"><label class="form-label" for="a-resp">Pasajero responsable</label>
+  <div class="db-asig-top">
+    <img class="db-hab-foto" src="{% url 'habitaciones:foto' libres.0.id %}" alt="Ilustración de la habitación seleccionada" width="400" height="250" data-foto>
+    <div class="row g-3 align-content-start">
+      <div class="col-12"><label class="form-label" for="a-hab">Habitación</label>
+        <select class="form-select" id="a-hab" name="habitacion_id" required>
+        {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}" data-foto="{% url 'habitaciones:foto' h.id %}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }}, ${{ h.precio }})</option>{% endfor %}
+        </select></div>
+      <div class="col-sm-4"><label class="form-label" for="a-cant">Cantidad de pasajeros</label>
+        <input class="form-control" id="a-cant" type="number" name="cantidad" value="1" min="1" max="30" step="1" required data-cantidad></div>
+      <div class="col-sm-4"><label class="form-label" for="a-ini">Fecha de inicio</label>
+        {% include "pasajeros/_fecha.html" with id="a-ini" name="fecha_inicio" valor=hoy label="Fecha de inicio" %}</div>
+      <div class="col-sm-4"><label class="form-label" for="a-ter">Fecha de término</label>
+        {% include "pasajeros/_fecha.html" with id="a-ter" name="fecha_termino" valor=manana label="Fecha de término" %}</div>
+    </div>
+  </div>
+  <h2 class="db-section-title mt-4">Pasajeros</h2>
+  {% include "pasajeros/_pasajeros.html" %}
+  <div class="row g-3 mt-1 mb-3">
+    <div class="col-md-5"><label class="form-label" for="a-resp">Pasajero responsable</label>
       <select class="form-select" id="a-resp" name="responsable" data-responsable required>
-        <option value="1">Pasajero de la línea 1</option>
+        <option value="1">Pasajero 1</option>
       </select>
       <div class="form-text">Se elige entre los pasajeros ingresados.</div></div>
   </div>

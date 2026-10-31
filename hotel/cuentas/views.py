@@ -105,7 +105,7 @@ def admin_usuarios(request):
             # un campo 'rol' enviado en el formulario se ignora (PF-03 / RN-01)
             crear_usuario(
                 request.POST.get("nombre"), request.POST.get("username"),
-                request.POST.get("password"), request.hotel_user.username,
+                request.POST.get("password"), request.hotel_user.username, request.POST.get("correo"),
             )
             messages.success(request, "Encargado registrado.")
         except ReglaError as e:

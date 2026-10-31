@@ -3,9 +3,9 @@ import hashlib
 from pathlib import Path
 
 _ESTATICOS = Path(__file__).resolve().parent / "static" / "hotel"
-# Huella del contenido de ui.css y ui.js: cambia con cada versión, así el navegador no usa una copia vieja en caché.
+# Huella del contenido de ui.css, ui.js y tema.js: cambia con cada versión, así el navegador no usa una copia vieja en caché.
 _VERSION = hashlib.sha256(
-    b"".join((_ESTATICOS / nombre).read_bytes() for nombre in ("ui.css", "ui.js"))
+    b"".join((_ESTATICOS / nombre).read_bytes() for nombre in ("ui.css", "ui.js", "tema.js"))
 ).hexdigest()[:10]
 
 

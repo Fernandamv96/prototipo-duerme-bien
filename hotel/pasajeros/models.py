@@ -9,6 +9,8 @@ from hotel.habitaciones.models import Habitacion
 class Pasajero(models.Model):
     nombre = models.CharField(max_length=150)
     rut = models.CharField(max_length=12, unique=True)
+    telefono = models.CharField(max_length=16, blank=True)           # obligatorio en el formulario; vacío en registros antiguos
+    correo = models.EmailField(max_length=254, blank=True)            # opcional
 
     class Meta:
         db_table = "pasajero"
@@ -24,6 +26,9 @@ class Asignacion(models.Model):
     pasajeros = models.ManyToManyField(Pasajero, related_name="asignaciones")
     responsable = models.ForeignKey(                                  # RN-10
         Pasajero, on_delete=models.PROTECT, related_name="asignaciones_responsable"
+    )
+    representante = models.ForeignKey(                                # solo en asignaciones de grupo: uno para todo el grupo
+        Pasajero, on_delete=models.PROTECT, null=True, blank=True, related_name="asignaciones_representante"
     )
     costo_total = models.PositiveIntegerField()                       # RN-07
     fecha_inicio = models.DateField(null=True, blank=True)            # estadía: fecha de inicio

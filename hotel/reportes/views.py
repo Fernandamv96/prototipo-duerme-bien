@@ -14,7 +14,7 @@ from hotel.pasajeros.models import Asignacion, HistorialOcupacion
 def estado(request):
     filas = []
     for h in Habitacion.objects.filter(activa=True).order_by("numero"):
-        asig = Asignacion.objects.filter(habitacion=h, estado="ACTIVA").first()
+        asig = Asignacion.objects.filter(habitacion=h, estado="ACTIVA").select_related("responsable", "representante").first()
         filas.append({"hab": h, "ocupada": asig is not None, "asig": asig})
     return render(request, "reportes/estado.html", {"filas": filas})
 

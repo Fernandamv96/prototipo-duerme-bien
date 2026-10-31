@@ -208,8 +208,9 @@ def test_pf16b_grafico_de_ocupacion_por_cama(client, encargado_user):
     crear_hab(client, "212", 2)
     client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("211"), pasajeros=f"A;{R1}\nB;{R2}", responsable="1"))
     html = client.get("/encargado").content.decode()
-    assert "50%" in html and "1 de 2" in html                       # barra general: 1 de 2 habitaciones ocupada
-    assert 'aria-label="Habitación 211: ocupada"' in html and 'aria-label="Habitación 212: vacante"' in html
+    assert "1 de 2 habitaciones ocupadas (50%)" in html              # gráfico circular: 1 de 2 habitaciones
+    assert 'class="db-dona-occ"' in html and "<title>Ocupadas: 1 de 2</title>" in html
+    assert "<small>211</small>" in html and "<small>212</small>" in html   # qué habitaciones hay en cada parte
     assert "2 de 6 camas ocupadas (33%)" in html                    # detalle: 2 huéspedes en 4 + 2 camas
     assert "Habitación 211: 2 de 4 camas ocupadas" in html
 
@@ -435,3 +436,107 @@ def test_next_de_otro_rol_lleva_al_panel_propio(client, encargado_user):
     r = login_con_next(client, "encargado", "Encargado#2026", "/admin-hotel/auditoria")
     assert r.headers["Location"] == "/"
     assert "solo para el rol Administrador" in client.get("/encargado").content.decode()
+
+
+# ------------------------------------------------------------ datos de contacto, fechas manuales, grupos y fotos
+def test_pf17_pasajero_con_telefono_y_correo_opcional(client, encargado_user):
+    from hotel.pasajeros.models import Pasajero
+    login_enc(client)
+    crear_hab(client, "701", 2)
+    client.post("/asignar", form(
+        client, "/asignar", **fechas(), habitacion_id=hab_id("701"),
+        pasajeros=f"Ana;{R1};+56 9 8765 4321;ana@correo.cl\nBeto;{R2};912345678", responsable="1",
+    ))
+    ana, beto = Pasajero.objects.get(rut=R1), Pasajero.objects.get(rut=R2)
+    assert (ana.telefono, ana.correo) == ("+56987654321", "ana@correo.cl")
+    assert (beto.telefono, beto.correo) == ("912345678", "")         # el correo es opcional
+    assert "+56987654321" in client.get("/hospedados").content.decode()
+
+
+def test_pf17b_telefono_obligatorio_y_correo_valido(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "702", 2)
+    data = form(client, "/asignar", **fechas(), habitacion_id=hab_id("702"), pasajeros=f"Ana;{R1}", responsable="1")
+    data["pasajero_telefono"] = [""]
+    r = client.post("/asignar", data, follow=True)
+    assert "Pasajero 1: falta teléfono" in r.content.decode()
+    r = client.post("/asignar", form(
+        client, "/asignar", **fechas(), habitacion_id=hab_id("702"), pasajeros=f"Ana;{R1};abc", responsable="1",
+    ), follow=True)
+    assert "teléfono inválido" in r.content.decode()
+    r = client.post("/asignar", form(
+        client, "/asignar", **fechas(), habitacion_id=hab_id("702"), pasajeros=f"Ana;{R1};912345678;sin-arroba", responsable="1",
+    ), follow=True)
+    assert "correo inválido" in r.content.decode()
+    assert not Asignacion.objects.exists()
+
+
+def test_pf18_fechas_escritas_a_mano(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "703", 1)
+    ini = timezone.localdate() + timedelta(days=1)
+    ter = ini + timedelta(days=2)
+    client.post("/asignar", form(
+        client, "/asignar", habitacion_id=hab_id("703"), pasajeros=f"Ana;{R1}", responsable="1",
+        fecha_inicio=ini.strftime("%d-%m-%Y"), fecha_termino=ter.strftime("%d/%m/%Y"),
+    ))
+    a = Asignacion.objects.get()
+    assert (a.fecha_inicio, a.fecha_termino, a.noches) == (ini, ter, 2)
+
+
+def test_pf19_numero_de_habitacion_solo_digitos(client, encargado_user):
+    login_enc(client)
+    for malo in ("BBBB", "10A", "1-01", "１０１"):
+        r = crear_hab(client, malo, 2)
+        assert not Habitacion.objects.filter(numero=malo).exists()
+    r = client.post("/habitaciones", form(client, "/habitaciones", numero="10A", capacidad=2, orientacion="MAR", precio=40000), follow=True)
+    assert "solo puede contener números" in r.content.decode()
+
+
+def test_pf20_grupo_con_representante(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "801", 2)
+    crear_hab(client, "802", 1)
+    ids = [str(hab_id("801")), str(hab_id("802"))]
+    data = form(client, "/asignar/multiple", pasajeros=f"A;{R1}\nB;{R2}\nC;{R3}", representante="3", **fechas())
+    data["habitacion_ids"] = ids
+    assert client.post("/asignar/multiple", data).status_code == 302
+    assert {a.representante.rut for a in Asignacion.objects.all()} == {R3}   # el mismo en todas las habitaciones
+    assert "Representante" in client.get("/hospedados").content.decode()
+
+
+def test_pf21_admin_registra_encargado_con_correo_opcional(client, admin_user):
+    login_admin(client)
+    client.post("/admin-hotel/usuarios", form(
+        client, "/admin-hotel/usuarios", nombre="Con", username="con", password="Clave#segura1", correo="Con@Hotel.cl",
+    ))
+    client.post("/admin-hotel/usuarios", form(
+        client, "/admin-hotel/usuarios", nombre="Sin", username="sin", password="Clave#segura1",
+    ))
+    assert Usuario.objects.get(username="con").correo == "con@hotel.cl"
+    assert Usuario.objects.get(username="sin").correo == ""
+    r = client.post("/admin-hotel/usuarios", form(
+        client, "/admin-hotel/usuarios", nombre="Mal", username="mal", password="Clave#segura1", correo="no-es-correo",
+    ), follow=True)
+    assert "no es válido" in r.content.decode() and not Usuario.objects.filter(username="mal").exists()
+
+
+def test_pf22_foto_ilustrada_de_la_habitacion(client, encargado_user):
+    crear = Habitacion.objects.create(numero="905", capacidad=6, orientacion="CIUDAD")
+    assert client.get(f"/habitaciones/{crear.id}/foto.svg").status_code == 302      # requiere sesión
+    login_enc(client)
+    r = client.get(f"/habitaciones/{crear.id}/foto.svg")
+    svg = r.content.decode()
+    assert r.status_code == 200 and r["Content-Type"].startswith("image/svg+xml")
+    assert ">905</text>" in svg and ">+2</text>" in svg                  # 4 camas dibujadas + 2 indicadas
+    assert not __import__("re").search(r'(x|width)="\d+,\d', svg)     # coordenadas con punto, no coma
+
+
+def test_pf23_ajustar_precios_con_tarifa_de_referencia(encargado_user):
+    from django.core.management import call_command
+    h1 = Habitacion.objects.create(numero="991", capacidad=4, orientacion="MAR", precio=230000)
+    h2 = Habitacion.objects.create(numero="992", capacidad=1, orientacion="CIUDAD", precio=60000)
+    call_command("ajustar_precios")                              # sin --aplicar no cambia nada
+    assert Habitacion.objects.get(pk=h1.pk).precio == 230000
+    call_command("ajustar_precios", aplicar=True)
+    assert (Habitacion.objects.get(pk=h1.pk).precio, Habitacion.objects.get(pk=h2.pk).precio) == (34000, 42000)

@@ -11,6 +11,9 @@ MAX_NOCHES = 90                      # tope razonable de estadía para evitar er
 MIN_PASSWORD = 8
 
 RUT_RE = re.compile(r"^(\d{7,8})-?([0-9K])$")   # el guion es opcional
+TELEFONO_RE = re.compile(r"^\+?\d{8,15}$")
+CORREO_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+FECHA_RE = re.compile(r"^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$")   # DD-MM-AAAA o DD/MM/AAAA
 
 
 class ReglaError(Exception):
@@ -48,26 +51,52 @@ def motivo_rut_invalido(rut):
     return f"el dígito verificador debería ser {digito_verificador(m.group(1))}"
 
 
-def parsear_pasajeros(texto):
-    """Una línea por pasajero con el formato 'Nombre;RUT'. Devuelve lista de (nombre, rut)."""
+def normalizar_telefono(telefono):
+    """Teléfono de contacto: 8 a 15 dígitos, con '+' inicial opcional; se ignoran espacios, guiones y paréntesis.
+    Devuelve el número limpio (p. ej. '+56912345678') o None si no es válido."""
+    limpio = re.sub(r"[\s\-()]", "", telefono or "")
+    return limpio if TELEFONO_RE.match(limpio) else None
+
+
+def correo_valido(correo):
+    return bool(CORREO_RE.match(correo or ""))
+
+
+def parsear_pasajeros(nombres, ruts, telefonos, correos=None):
+    """Un pasajero por fila del formulario (nombre, RUT, teléfono y correo opcional), en listas paralelas.
+    Las filas completamente vacías se ignoran. Devuelve una lista de dicts con los datos ya normalizados."""
+    correos = list(correos or [])
+    filas = zip(nombres or [], ruts or [], telefonos or [], correos + [""] * (len(nombres or []) - len(correos)))
     pasajeros = []
-    for linea in (texto or "").splitlines():
-        if not linea.strip():
+    for i, (nombre, rut, telefono, correo) in enumerate(filas, start=1):
+        nombre, rut, telefono, correo = (str(v or "").strip() for v in (nombre, rut, telefono, correo))
+        if not (nombre or rut or telefono or correo):
             continue
-        if ";" not in linea:
-            raise ReglaError("Cada pasajero debe escribirse como 'Nombre;RUT'.")
-        nombre, rut = (p.strip() for p in linea.split(";", 1))
-        if not nombre or not rut:
-            raise ReglaError("Nombre y RUT del pasajero son obligatorios (RF-13).")
+        faltan = [campo for campo, valor in (("nombre", nombre), ("RUT", rut), ("teléfono", telefono)) if not valor]
+        if faltan:
+            raise ReglaError(f"Pasajero {i}: falta {' y '.join(faltan)} (RF-13).")
         rut_n = normalizar_rut(rut)
         if rut_n is None:
-            raise ReglaError(f"RUT inválido: {rut} ({motivo_rut_invalido(rut)}).")
-        if any(r == rut_n for _n, r in pasajeros):
+            raise ReglaError(f"Pasajero {i}: RUT inválido {rut} ({motivo_rut_invalido(rut)}).")
+        if any(p["rut"] == rut_n for p in pasajeros):
             raise ReglaError(f"El RUT {rut_n} está repetido en la lista de pasajeros.")
-        pasajeros.append((nombre[:150], rut_n))
+        tel_n = normalizar_telefono(telefono)
+        if tel_n is None:
+            raise ReglaError(f"Pasajero {i}: teléfono inválido {telefono} (use solo números, p. ej. +56 9 1234 5678).")
+        if correo and not correo_valido(correo):
+            raise ReglaError(f"Pasajero {i}: correo inválido {correo}.")
+        pasajeros.append({"nombre": nombre[:150], "rut": rut_n, "telefono": tel_n, "correo": correo.lower()})
     if not pasajeros:
         raise ReglaError("Debe ingresar al menos un pasajero.")
     return pasajeros
+
+
+def validar_numero_habitacion(numero):
+    """El número de habitación solo admite dígitos (p. ej. 101)."""
+    numero = (numero or "").strip()
+    if not numero.isdigit() or not numero.isascii():
+        raise ReglaError("El número de habitación solo puede contener números (p. ej. 101).")
+    return numero
 
 
 def validar_cantidad(cantidad, pasajeros):
@@ -82,18 +111,28 @@ def validar_cantidad(cantidad, pasajeros):
     if n < cantidad:
         raise ReglaError(
             f"Indicó {cantidad} pasajeros pero ingresó {n}: faltan los datos de {cantidad - n}. "
-            "Cada pasajero debe tener su propia línea con Nombre;RUT."
+            "Cada pasajero debe tener su propia fila con nombre, RUT y teléfono."
         )
     if n > cantidad:
         raise ReglaError(f"Indicó {cantidad} pasajeros pero ingresó {n}; corrija la cantidad o la lista.")
 
 
+def parsear_fecha(texto):
+    """Fecha escrita a mano como 'DD-MM-AAAA' (también con '/') o en formato ISO 'AAAA-MM-DD'."""
+    texto = (texto or "").strip()
+    m = FECHA_RE.match(texto)
+    if m:
+        dia, mes, anio = (int(g) for g in m.groups())
+        return date(anio, mes, dia)
+    return date.fromisoformat(texto)
+
+
 def parsear_fechas(inicio, termino, hoy):
-    """Fechas de inicio y término de la estadía ('AAAA-MM-DD'). Devuelve (inicio, termino, noches)."""
+    """Fechas de inicio y término de la estadía. Devuelve (inicio, termino, noches)."""
     try:
-        f_ini, f_ter = date.fromisoformat(inicio or ""), date.fromisoformat(termino or "")
+        f_ini, f_ter = parsear_fecha(inicio), parsear_fecha(termino)
     except ValueError:
-        raise ReglaError("Debe indicar fecha de inicio y fecha de término válidas.")
+        raise ReglaError("Debe indicar fecha de inicio y fecha de término válidas (DD-MM-AAAA).")
     if f_ini < hoy:
         raise ReglaError("La fecha de inicio no puede ser anterior a hoy.")
     noches = (f_ter - f_ini).days

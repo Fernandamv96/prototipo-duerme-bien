@@ -129,33 +129,106 @@
     if (prev && parseInt(prev, 10) <= nombres.length) sel.value = prev;
   }
 
-  // Asignación simple y de grupo: RUT en vivo, responsable por nombre, capacidad y total a cobrar
+  // Fechas escritas a mano (dd-mm-aaaa) con botón de calendario
+  function fechaIso(texto) {
+    var m = (texto || "").match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+    if (!m) return "";
+    var d = new Date(+m[3], +m[2] - 1, +m[1]);
+    if (d.getFullYear() !== +m[3] || d.getMonth() !== +m[2] - 1 || d.getDate() !== +m[1]) return "";
+    return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+  }
+  $$(".db-fecha").forEach(function (caja) {
+    var txt = caja.querySelector("[data-fecha]"), btn = caja.querySelector("[data-fecha-btn]"), pick = caja.querySelector("[data-fecha-picker]");
+    txt.addEventListener("input", function (e) {
+      if (e.inputType && e.inputType.indexOf("delete") === 0) return;   // al borrar no se reinsertan guiones
+      var dig = txt.value.replace(/\D/g, "").slice(0, 8), v = dig.slice(0, 2);
+      if (dig.length > 2) v += "-" + dig.slice(2, 4);
+      if (dig.length > 4) v += "-" + dig.slice(4);
+      if (dig.length === 2 || dig.length === 4) v += "-";
+      txt.value = v;
+    });
+    btn.addEventListener("click", function () {
+      pick.value = fechaIso(txt.value);
+      if (pick.showPicker) { try { pick.showPicker(); return; } catch (e) { /* navegador sin showPicker */ } }
+      pick.focus(); pick.click();
+    });
+    pick.addEventListener("change", function () {
+      var p = pick.value.split("-");
+      if (p.length === 3) txt.value = p[2] + "-" + p[1] + "-" + p[0];
+      txt.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+
+  // Número de habitación: solo dígitos
+  $$("[data-solo-numeros]").forEach(function (el) {
+    el.addEventListener("input", function () { el.value = el.value.replace(/\D/g, ""); });
+  });
+
+  function telefonoValido(t) { return /^\+?\d{8,15}$/.test((t || "").replace(/[\s\-()]/g, "")); }
+  function correoValido(c) { return !c || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c); }
+
+  // Asignación simple y de grupo: filas de pasajeros, validación en vivo, responsable/representante, capacidad y total
   $$("[data-asignacion]").forEach(function (form) {
-    var area = form.querySelector("textarea[name=pasajeros]");
+    var cont = form.querySelector("[data-filas]");
     var box = form.querySelector(".db-counter");
-    if (!area || !box) return;
+    if (!cont || !box) return;
+    var modelo = cont.querySelector("[data-fila]").cloneNode(true);
     var outP = box.querySelector("[data-n-pasajeros]"), outC = box.querySelector("[data-n-capacidad]"), state = box.querySelector(".db-state");
     var outN = box.querySelector("[data-n-noches]"), outT = box.querySelector("[data-total]");
-    var lista = form.querySelector("[data-rut-check]");
     var ini = form.querySelector("input[name=fecha_inicio]"), ter = form.querySelector("input[name=fecha_termino]");
-    var selHab = form.querySelector("select[name=habitacion_id]");
-    var inCant = form.querySelector("[data-cantidad]");
+    var selHab = form.querySelector("select[name=habitacion_id]"), foto = form.querySelector("[data-foto]");
+    var inCant = form.querySelector("[data-cantidad]"), selRep = form.querySelector("[data-representante]");
+
+    // Tantas filas como "Cantidad de pasajeros" (se conservan los datos ya escritos)
+    function ajustarFilas() {
+      var cant = Math.max(1, Math.min(parseInt(inCant.value, 10) || 1, parseInt(inCant.max, 10) || 60));
+      var filas = $$("[data-fila]", cont);
+      for (var i = filas.length; i < cant; i++) {
+        var f = modelo.cloneNode(true);
+        $$("input", f).forEach(function (inp) { inp.value = ""; inp.classList.remove("is-invalid"); });
+        cont.appendChild(f);
+      }
+      filas = $$("[data-fila]", cont);
+      for (var j = filas.length - 1; j >= cant; j--) filas[j].remove();
+      $$("[data-fila]", cont).forEach(function (f, k) {
+        f.querySelector(".db-pax-n").textContent = k + 1;
+        $$("input", f).forEach(function (inp) {
+          inp.setAttribute("aria-label", inp.getAttribute("aria-label").replace(/pasajero \d+/, "pasajero " + (k + 1)));
+        });
+      });
+    }
 
     function pasajeros() {
       var vistos = {};
-      return area.value.split(/\r?\n/).filter(function (l) { return l.trim(); }).map(function (l) {
-        var partes = l.split(";"), nombre = (partes[0] || "").trim(), rut = partes.slice(1).join(";").trim();
-        var p = { nombre: nombre || "(sin nombre)", rut: rut, error: "" };
-        var rutN = normalizarRut(rut);
-        if (partes.length < 2 || !nombre || !rut) p.error = "Use el formato Nombre;RUT";
-        else if (!rutN) p.error = "RUT inválido: " + motivoRutInvalido(rut);
-        else if (vistos[rutN]) p.error = "RUT repetido";
+      return $$("[data-fila]", cont).map(function (f, k) {
+        var get = function (n) { return f.querySelector("[name=pasajero_" + n + "]"); };
+        var nom = get("nombre"), rut = get("rut"), tel = get("telefono"), cor = get("correo");
+        var p = { fila: f, nombre: nom.value.trim(), vacia: !(nom.value.trim() || rut.value.trim() || tel.value.trim() || cor.value.trim()), error: "" };
+        var rutN = normalizarRut(rut.value);
+        var malos = [];
+        if (!p.nombre) malos.push([nom, "falta el nombre"]);
+        if (!rut.value.trim()) malos.push([rut, "falta el RUT"]);
+        else if (!rutN) malos.push([rut, "RUT inválido: " + motivoRutInvalido(rut.value)]);
+        else if (vistos[rutN]) malos.push([rut, "RUT repetido"]);
         else vistos[rutN] = true;
+        if (!tel.value.trim()) malos.push([tel, "falta el teléfono"]);
+        else if (!telefonoValido(tel.value)) malos.push([tel, "teléfono inválido (solo números, p. ej. +56 9 1234 5678)"]);
+        if (!correoValido(cor.value.trim())) malos.push([cor, "correo inválido"]);
+        [nom, rut, tel, cor].forEach(function (inp) {
+          var malo = malos.some(function (m) { return m[0] === inp; });
+          // solo se marca en rojo lo que ya se tocó, para no llenar de errores una fila recién creada
+          inp.classList.toggle("is-invalid", malo && (inp.value.trim() !== "" || inp.dataset.tocado === "1"));
+          inp.setCustomValidity(malo ? malos.filter(function (m) { return m[0] === inp; })[0][1] : "");
+        });
+        var visibles = malos.filter(function (m) { return m[0].value.trim() !== "" || m[0].dataset.tocado === "1"; });
+        f.querySelector(".db-pax-msg").textContent = visibles.map(function (m) { return m[1]; }).join(" · ");
+        p.error = malos.length ? malos[0][1] : "";
+        p.nombre = p.nombre || "Pasajero " + (k + 1);
         return p;
       });
     }
     function noches() {
-      var a = ini && Date.parse(ini.value), b = ter && Date.parse(ter.value);
+      var a = ini && Date.parse(fechaIso(ini.value)), b = ter && Date.parse(fechaIso(ter.value));
       return a && b ? Math.round((b - a) / 86400000) : 0;
     }
     // Habitaciones elegidas en el mismo orden que usa el servidor: mayor capacidad primero, luego número
@@ -170,26 +243,17 @@
       }).sort(function (x, y) { return y.cap - x.cap || (x.num < y.num ? -1 : x.num > y.num ? 1 : 0); });
     }
     function update() {
-      var pax = pasajeros(), n = pax.length, habs = habitaciones(), noc = noches();
+      var pax = pasajeros(), habs = habitaciones(), noc = noches();
+      var completos = pax.filter(function (p) { return !p.vacia; }), n = pax.length;
       var cap = habs.reduce(function (s, h) { return s + h.cap; }, 0);
-      var malos = pax.filter(function (p) { return p.error; });
+      var malos = pax.filter(function (p) { return p.error && !p.vacia; }), vacias = pax.filter(function (p) { return p.vacia; });
 
-      lista.textContent = "";
-      pax.forEach(function (p) {
-        var li = document.createElement("li");
-        li.className = p.error ? "bad" : "ok";
-        li.textContent = (p.error ? "✗ " : "✓ ") + p.nombre + " — " + (p.rut || "sin RUT") + (p.error ? " (" + p.error + ")" : "");
-        lista.appendChild(li);
-      });
-      // Cada pasajero declarado en "Cantidad" debe tener su propia línea con Nombre;RUT
-      var cant = inCant ? parseInt(inCant.value, 10) || 0 : n;
-      var faltaCant = cant > n ? "Faltan los datos de " + (cant - n) + " pasajero(s): ingrese el Nombre;RUT de cada uno"
-        : cant && cant < n ? "Ingresó " + n + " pasajeros pero indicó " + cant : "";
-      area.setCustomValidity(malos.length ? "Corrija los RUT marcados en rojo." : faltaCant ? faltaCant + "." : "");
-      if (ter && ini) { ter.min = ini.value; ter.setCustomValidity(ini.value && noc < 1 ? "La fecha de término debe ser posterior a la de inicio." : ""); }
+      [ini, ter].forEach(function (f) { if (f) f.setCustomValidity(fechaIso(f.value) ? "" : "Escriba la fecha como dd-mm-aaaa."); });
+      if (ter && ini && fechaIso(ter.value) && fechaIso(ini.value) && noc < 1) ter.setCustomValidity("La fecha de término debe ser posterior a la de inicio.");
 
-      // Responsable: lista con los nombres de los pasajeros que quedan en cada habitación
+      // Responsable y representante: listas con los nombres de los pasajeros
       var nombres = pax.map(function (p) { return p.nombre; }), porHab = {};
+      if (selRep) opciones(selRep, nombres, "Ingrese los pasajeros primero");
       if (selHab) opciones(form.querySelector("[data-responsable]"), nombres, "Ingrese los pasajeros primero");
       else {
         var desde = 0;
@@ -205,18 +269,25 @@
       var resto = n, total = selHab ? n * ((habs[0] || {}).precio || 0)
         : habs.reduce(function (s, h) { var k = Math.min(resto, h.cap); resto -= k; return s + k * h.precio; }, 0);
       outT.textContent = "$" + (total * Math.max(noc, 0)).toLocaleString("es-CL");
-      var vacias = habs.length > 1 && n > 0 ? habs.filter(function (h) { return !(porHab[h.id] || []).length; }) : [];
-      var problema = malos.length ? malos.length + " RUT con error"
-        : faltaCant ? faltaCant
+      var habVacias = habs.length > 1 && n > 0 ? habs.filter(function (h) { return !(porHab[h.id] || []).length; }) : [];
+      var problema = vacias.length ? "Faltan los datos de " + vacias.length + " pasajero(s)"
+        : malos.length ? malos.length + " pasajero(s) con datos por corregir"
         : n > cap ? "Sobran " + (n - cap) + " pasajero(s)"
-        : vacias.length ? "La habitación " + vacias[0].num + " quedaría vacía"
+        : habVacias.length ? "La habitación " + habVacias[0].num + " quedaría vacía"
         : noc < 1 ? "Revise las fechas" : "";
-      var ok = n > 0 && !problema;
-      box.classList.toggle("ok", ok); box.classList.toggle("bad", !ok && (n > 0 || cant > 0));
-      state.textContent = n === 0 && !cant ? "" : ok ? "✓ Listo para confirmar" : problema;
+      var ok = completos.length > 0 && !problema;
+      box.classList.toggle("ok", ok); box.classList.toggle("bad", !ok && completos.length > 0);
+      state.textContent = completos.length === 0 ? "" : ok ? "✓ Listo para confirmar" : problema;
     }
-    form.addEventListener("input", update);
-    form.addEventListener("change", update);
+    cont.addEventListener("focusout", function (e) { if (e.target.matches("input")) { e.target.dataset.tocado = "1"; update(); } });
+    // Al intentar confirmar con datos inválidos el navegador no envía el formulario: se muestran todos los errores
+    form.addEventListener("invalid", function () { $$("input", cont).forEach(function (i) { i.dataset.tocado = "1"; }); update(); }, true);
+    form.addEventListener("input", function (e) { if (e.target === inCant) ajustarFilas(); update(); });
+    form.addEventListener("change", function (e) {
+      if (e.target === selHab && foto) foto.src = selHab.options[selHab.selectedIndex].getAttribute("data-foto");
+      update();
+    });
+    ajustarFilas();
     update();
   });
 })();

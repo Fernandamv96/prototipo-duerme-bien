@@ -11,22 +11,26 @@
 </div>
 <h2 class="db-section-title">Ocupación actual del hotel</h2>
 <figure class="db-card db-spot db-occ db-reveal" aria-labelledby="occ-cap">
-  <div class="db-occ-head">
+  {% if dona %}
+  <div class="db-dona-wrap">
+    <svg class="db-dona" viewBox="0 0 160 160" role="img" aria-labelledby="occ-cap">
+      <circle class="db-dona-track" cx="80" cy="80" r="{{ dona.r }}"/>
+      <circle class="db-dona-vac" cx="80" cy="80" r="{{ dona.r }}" stroke-dasharray="{{ dona.vac }} {{ dona.circ }}" stroke-dashoffset="{{ dona.vac_off }}" transform="rotate(-90 80 80)"><title>Vacantes: {{ vacantes }} de {{ total }}</title></circle>
+      <circle class="db-dona-occ" cx="80" cy="80" r="{{ dona.r }}" stroke-dasharray="{{ dona.occ }} {{ dona.circ }}" stroke-dashoffset="{{ dona.occ_off }}" transform="rotate(-90 80 80)"><title>Ocupadas: {{ ocupadas }} de {{ total }}</title></circle>
+      <text class="db-dona-pct" x="80" y="80" text-anchor="middle" dominant-baseline="central">{{ pct_habs }}%</text>
+      <text class="db-dona-sub" x="80" y="104" text-anchor="middle">ocupadas</text>
+    </svg>
     <div>
-      <div class="db-occ-hero">{{ pct_habs }}%</div>
-      <figcaption class="db-occ-sub" id="occ-cap">de las habitaciones ocupadas · {{ ocupadas }} de {{ total }}</figcaption>
+      <figcaption class="db-occ-sub" id="occ-cap">{{ ocupadas }} de {{ total }} habitaciones ocupadas ({{ pct_habs }}%)</figcaption>
+      <ul class="db-dona-legend">
+        <li><i class="on" aria-hidden="true"></i><span>Ocupadas</span><strong>{{ ocupadas }}</strong>
+          <small>{{ ocupadas_lista|join:", "|default:"—" }}</small></li>
+        <li><i aria-hidden="true"></i><span>Vacantes</span><strong>{{ vacantes }}</strong>
+          <small>{{ vacantes_lista|join:", "|default:"—" }}</small></li>
+      </ul>
     </div>
-    <ul class="db-occ-legend" aria-hidden="true">
-      <li><i class="on"></i>Ocupadas <strong>{{ ocupadas }}</strong></li><li><i></i>Vacantes <strong>{{ vacantes }}</strong></li>
-    </ul>
   </div>
-  <ul class="db-occ-bar">
-  {% for f in hotel %}
-    <li class="{% if f.huespedes %}on{% endif %}" tabindex="0"
-        title="Habitación {{ f.hab.numero }}: {% if f.huespedes %}ocupada · {{ f.huespedes }} de {{ f.hab.capacidad }} camas{% else %}vacante · {{ f.hab.capacidad }} camas{% endif %}"
-        aria-label="Habitación {{ f.hab.numero }}: {% if f.huespedes %}ocupada{% else %}vacante{% endif %}">{{ f.hab.numero }}</li>
-  {% empty %}<li class="db-empty">No hay habitaciones registradas.</li>{% endfor %}
-  </ul>
+  {% else %}<p class="db-empty">No hay habitaciones registradas.</p>{% endif %}
   {% if ocupacion %}
   <details class="db-occ-more">
     <summary>Ver camas por habitación · {{ camas_ocupadas }} de {{ camas }} camas ocupadas ({{ pct_camas }}%)</summary>

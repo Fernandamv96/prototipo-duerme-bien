@@ -24,6 +24,7 @@ class Usuario(models.Model):
 
     nombre = models.CharField(max_length=100)
     username = models.CharField(max_length=50, unique=True)
+    correo = models.EmailField(max_length=254, blank=True)           # opcional
     password_hash = models.CharField(max_length=128)
     rol = models.CharField(max_length=20, choices=ROLES)
     activo = models.BooleanField(default=True)

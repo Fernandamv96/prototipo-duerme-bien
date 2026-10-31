@@ -6,21 +6,28 @@
 elegidas debe ser igual o mayor al total de pasajeros. Cada habitación cobra su propio precio por pasajero y por noche.</p>
 <form method="post" action="{% url 'pasajeros:asignar_multiple' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
-  <div class="row g-3 mb-4">
-    <div class="col-md-3"><label class="form-label" for="g-ini">Fecha de inicio</label>
-      <input class="form-control" id="g-ini" type="date" name="fecha_inicio" value="{{ hoy }}" min="{{ hoy }}" required></div>
-    <div class="col-md-3"><label class="form-label" for="g-ter">Fecha de término</label>
-      <input class="form-control" id="g-ter" type="date" name="fecha_termino" value="{{ manana }}" min="{{ manana }}" required></div>
+  <div class="row g-3 mb-2">
     <div class="col-md-3"><label class="form-label" for="g-cant">Cantidad de pasajeros</label>
-      <input class="form-control" id="g-cant" type="number" name="cantidad" min="1" step="1" required data-cantidad></div>
-    <div class="col-12"><label class="form-label" for="g-pas">Pasajeros del grupo (uno por línea: <code>Nombre;RUT</code>)</label>
-      <textarea class="form-control db-mono" id="g-pas" name="pasajeros" rows="6" placeholder="Juan Pérez;12345678-5" required></textarea>
-      <ul class="db-rut-check" data-rut-check aria-live="polite"></ul></div>
+      <input class="form-control" id="g-cant" type="number" name="cantidad" value="{{ max_disp|add:1 }}" min="1" max="60" step="1" required data-cantidad></div>
+    <div class="col-md-3"><label class="form-label" for="g-ini">Fecha de inicio</label>
+      {% include "pasajeros/_fecha.html" with id="g-ini" name="fecha_inicio" valor=hoy label="Fecha de inicio" %}</div>
+    <div class="col-md-3"><label class="form-label" for="g-ter">Fecha de término</label>
+      {% include "pasajeros/_fecha.html" with id="g-ter" name="fecha_termino" valor=manana label="Fecha de término" %}</div>
+  </div>
+  <h2 class="db-section-title mt-4">Pasajeros del grupo</h2>
+  {% include "pasajeros/_pasajeros.html" %}
+  <div class="row g-3 mt-1 mb-4">
+    <div class="col-md-5"><label class="form-label" for="g-rep">Representante del grupo</label>
+      <select class="form-select" id="g-rep" name="representante" data-representante required>
+        <option value="1">Pasajero 1</option>
+      </select>
+      <div class="form-text">La persona de contacto de todo el grupo. Cada habitación tiene además su propio responsable.</div></div>
   </div>
   <h2 class="db-section-title">Habitaciones vacantes</h2>
   <div class="db-rooms">
   {% for h in libres %}
     <label class="db-room-card">
+      <img class="db-room-foto" src="{% url 'habitaciones:foto' h.id %}" alt="" width="400" height="250" loading="lazy">
       <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}" data-num="{{ h.numero }}" aria-label="Habitación {{ h.numero }}">
       <div class="db-room">{{ h.numero }}</div>
       <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }} · ${{ h.precio }}</div>

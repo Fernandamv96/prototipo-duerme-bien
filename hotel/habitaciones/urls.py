@@ -9,4 +9,5 @@ urlpatterns = [
     path("habitaciones", views.habitaciones, name="habitaciones"),
     path("habitaciones/<int:hab_id>/eliminar", views.eliminar, name="eliminar"),
     path("habitaciones/<int:hab_id>/precio", views.precio, name="precio"),
+    path("habitaciones/<int:hab_id>/foto.svg", views.foto, name="foto"),
 ]

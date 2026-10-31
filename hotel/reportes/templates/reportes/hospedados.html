@@ -4,10 +4,13 @@
 <p class="db-subtitle">Pasajeros actualmente en el hotel. La salida se registra por habitación completa.</p>
 {% if asigs %}
 <div class="db-card db-table-wrap db-reveal">
-<table class="table"><thead><tr><th>Nombre</th><th>RUT</th><th>Habitación</th><th>Responsable</th><th>Estadía</th><th>Total a cobrar</th><th></th></tr></thead>
+<table class="table"><thead><tr><th>Nombre</th><th>RUT</th><th>Contacto</th><th>Habitación</th><th>Responsable</th><th>Estadía</th><th>Total a cobrar</th><th></th></tr></thead>
 <tbody>
 {% for a in asigs %}{% for p in a.pasajeros.all %}<tr>
-  <td><strong>{{ p.nombre }}</strong></td><td class="db-mono">{{ p.rut }}</td><td class="db-room">{{ a.habitacion.numero }}</td>
+  <td><strong>{{ p.nombre }}</strong>{% if p.id == a.representante_id %} <span class="db-tag" title="Representante del grupo">Representante</span>{% endif %}</td>
+  <td class="db-mono">{{ p.rut }}</td>
+  <td class="db-contacto">{% if p.telefono %}<a href="tel:{{ p.telefono }}">{{ p.telefono }}</a>{% else %}<span class="text-muted">—</span>{% endif %}{% if p.correo %}<br><a href="mailto:{{ p.correo }}">{{ p.correo }}</a>{% endif %}</td>
+  <td class="db-room">{{ a.habitacion.numero }}</td>
   <td>{% if p.id == a.responsable_id %}<span class="db-star" title="Responsable">★</span>{% endif %}</td>
   <td class="db-mono">{% if forloop.first and a.fecha_inicio %}{{ a.fecha_inicio|date:"d-m-Y" }} → {{ a.fecha_termino|date:"d-m-Y" }} ({{ a.noches }} noche{{ a.noches|pluralize }}){% endif %}</td>
   <td class="db-mono">{% if forloop.first %}<strong>${{ a.costo_total }}</strong>{% endif %}</td>

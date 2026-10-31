@@ -41,7 +41,7 @@ Las reglas de negocio (RN-01 a RN-10) viven en [`hotel/reglas.py`](hotel/reglas.
 | --- | --- |
 | Backend | Python 3.12 + Django 6 (WhiteNoise para estáticos) |
 | Base de datos | SQLite en desarrollo y PostgreSQL en producción (`dj-database-url` + psycopg 3) |
-| Tests | pytest + pytest-django (35 pruebas) |
+| Tests | pytest + pytest-django (52 pruebas) |
 | Despliegue | Vercel, runtime de Python ([`api/index.py`](api/index.py)) |
 
 ## Ejecutar en local

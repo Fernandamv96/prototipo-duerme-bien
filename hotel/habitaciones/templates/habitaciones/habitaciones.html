@@ -5,7 +5,7 @@
 <div class="db-card db-spot mb-4 db-reveal"><div class="card-body p-4">
 <form method="post" action="{% url 'habitaciones:habitaciones' %}" class="row g-3 align-items-end">
   {% csrf_token %}
-  <div class="col-md-2"><label class="form-label" for="h-num">Número</label><input class="form-control" id="h-num" name="numero" placeholder="Ej. 101" required></div>
+  <div class="col-md-2"><label class="form-label" for="h-num">Número</label><input class="form-control" id="h-num" name="numero" placeholder="Ej. 101" inputmode="numeric" pattern="[0-9]+" maxlength="10" title="Solo números, p. ej. 101" required data-solo-numeros></div>
   <div class="col-md-2"><label class="form-label" for="h-cap">Capacidad</label><input class="form-control" id="h-cap" name="capacidad" type="number" min="1" placeholder="Pasajeros" required></div>
   <div class="col-md-3"><label class="form-label" for="h-pre">Precio por pasajero/noche</label><input class="form-control" id="h-pre" name="precio" type="number" min="1" step="1" value="{{ precio_defecto }}" required></div>
   <div class="col-md-2"><label class="form-label" for="h-ori">Orientación</label><select class="form-select" id="h-ori" name="orientacion">
@@ -14,10 +14,10 @@
   <div class="col-md-3"><button class="btn btn-primary w-100">Registrar habitación</button></div>
 </form></div></div>
 <div class="db-card db-table-wrap db-reveal">
-<table class="table"><thead><tr><th>Número</th><th>Capacidad</th><th>Orientación</th><th>Precio por pasajero/noche</th><th>Estado</th><th></th></tr></thead>
+<table class="table"><thead><tr><th>Foto</th><th>Número</th><th>Capacidad</th><th>Orientación</th><th>Precio por pasajero/noche</th><th>Estado</th><th></th></tr></thead>
 <tbody>
 {% for h in habitaciones %}
-<tr><td class="db-room">{{ h.numero }}</td><td>{{ h.capacidad }} pax</td><td>{{ h.get_orientacion_display }}</td>
+<tr><td><img class="db-thumb" src="{% url 'habitaciones:foto' h.id %}" alt="Ilustración de la habitación {{ h.numero }}" width="96" height="60" loading="lazy"></td><td class="db-room">{{ h.numero }}</td><td>{{ h.capacidad }} pax</td><td>{{ h.get_orientacion_display }}</td>
 <td><form method="post" action="{% url 'habitaciones:precio' h.id %}" class="d-flex gap-2 m-0">
   {% csrf_token %}
   <input class="form-control form-control-sm db-precio" name="precio" type="number" min="1" step="1" value="{{ h.precio }}" aria-label="Precio de la habitación {{ h.numero }}">
@@ -26,5 +26,5 @@
 <td class="text-end"><form method="post" action="{% url 'habitaciones:eliminar' h.id %}" class="m-0">
   {% csrf_token %}
   <button class="btn btn-sm btn-outline-danger">Eliminar</button></form></td></tr>
-{% empty %}<tr><td colspan="6" class="db-empty">No hay habitaciones registradas.</td></tr>{% endfor %}
+{% empty %}<tr><td colspan="7" class="db-empty">No hay habitaciones registradas.</td></tr>{% endfor %}
 </tbody></table></div>{% endblock %}

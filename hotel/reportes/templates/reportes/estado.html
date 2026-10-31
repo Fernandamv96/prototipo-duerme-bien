@@ -8,7 +8,7 @@
 {% for f in filas %}<tr class="{% if f.ocupada %}table-danger{% else %}table-success{% endif %}">
   <td class="db-room">{{ f.hab.numero }}</td><td>{{ f.hab.get_orientacion_display }}</td><td>{{ f.hab.capacidad }} pax</td>
   <td>{% if f.ocupada %}<span class="db-badge ocupada">Ocupada</span>{% else %}<span class="db-badge vacante">Vacante</span>{% endif %}</td>
-  <td>{% if f.asig %}{{ f.asig.responsable.nombre }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+  <td>{% if f.asig %}{{ f.asig.responsable.nombre }}{% if f.asig.representante %}<br><small class="text-muted">Grupo: {{ f.asig.representante.nombre }} (representante)</small>{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</td>
   <td class="db-mono">{% if f.asig.fecha_inicio %}{{ f.asig.fecha_inicio|date:"d-m-Y" }} → {{ f.asig.fecha_termino|date:"d-m-Y" }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
   <td class="db-mono">{% if f.asig %}${{ f.asig.costo_total }}{% else %}<span class="text-muted">—</span>{% endif %}</td></tr>
 {% empty %}<tr><td colspan="7" class="db-empty">No hay habitaciones registradas.</td></tr>{% endfor %}

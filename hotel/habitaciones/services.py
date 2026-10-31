@@ -1,6 +1,6 @@
 """Servicios de dominio - módulo habitaciones (RF-07 a RF-11)."""
 from hotel.cuentas.models import auditar
-from hotel.reglas import ReglaError, parsear_precio
+from hotel.reglas import ReglaError, parsear_precio, validar_numero_habitacion
 
 from .models import ORIENTACIONES, Habitacion
 
@@ -12,7 +12,7 @@ def habitaciones_libres():
 
 
 def registrar_habitacion(numero, capacidad, orientacion, precio, usuario_label):
-    numero = (numero or "").strip()
+    numero = validar_numero_habitacion(numero)
     try:
         capacidad = int(capacidad)
     except (TypeError, ValueError):

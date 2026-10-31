@@ -16,9 +16,14 @@ from .services import crear_asignacion, crear_asignacion_multiple, registrar_sal
 
 
 def _ctx_estadia():
-    """Fechas por defecto (hoy → mañana) para los formularios de asignación."""
+    """Fechas por defecto (hoy → mañana) para los formularios de asignación, como se escriben a mano."""
     hoy = timezone.localdate()
-    return {"hoy": hoy.isoformat(), "manana": (hoy + timedelta(days=1)).isoformat()}
+    return {"hoy": hoy.strftime("%d-%m-%Y"), "manana": (hoy + timedelta(days=1)).strftime("%d-%m-%Y")}
+
+
+def _filas_pasajeros(post):
+    """Una posición por fila del formulario de pasajeros: (nombres, ruts, telefonos, correos)."""
+    return tuple(post.getlist(f"pasajero_{campo}") for campo in ("nombre", "rut", "telefono", "correo"))
 
 
 @requiere(ROL_ENCARGADO)
@@ -28,7 +33,7 @@ def asignar(request):
             hab_id = int(request.POST.get("habitacion_id", "0"))
             idx = int(request.POST.get("responsable", "0"))
             crear_asignacion(
-                hab_id, request.POST.get("pasajeros"), request.POST.get("cantidad"), idx,
+                hab_id, _filas_pasajeros(request.POST), request.POST.get("cantidad"), idx,
                 request.POST.get("fecha_inicio"), request.POST.get("fecha_termino"),
                 request.hotel_user, request.hotel_user.username,
             )
@@ -52,7 +57,8 @@ def asignar_multiple(request):
                 h.id: int(request.POST.get(f"responsable_{h.id}", "1") or 1) for h in libres if h.id in ids
             }
             asigs = crear_asignacion_multiple(
-                ids, request.POST.get("pasajeros"), request.POST.get("cantidad"), responsables,
+                ids, _filas_pasajeros(request.POST), request.POST.get("cantidad"), responsables,
+                int(request.POST.get("representante", "0") or 0),
                 request.POST.get("fecha_inicio"), request.POST.get("fecha_termino"),
                 request.hotel_user, request.hotel_user.username,
             )

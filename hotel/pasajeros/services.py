@@ -10,26 +10,34 @@ from hotel.reglas import ReglaError, calcular_costo, parsear_fechas, parsear_pas
 from .models import Asignacion, HistorialOcupacion, Pasajero
 
 
-def _pasajero_por_rut(nombre, rut):
-    p, _creado = Pasajero.objects.get_or_create(rut=rut, defaults={"nombre": nombre})
+def _pasajero_por_rut(dato):
+    """Busca al pasajero por RUT o lo crea; si ya existía, actualiza sus datos de contacto."""
+    p, creado = Pasajero.objects.get_or_create(
+        rut=dato["rut"], defaults={"nombre": dato["nombre"], "telefono": dato["telefono"], "correo": dato["correo"]},
+    )
+    if not creado:
+        p.telefono = dato["telefono"]
+        p.correo = dato["correo"] or p.correo
+        p.save(update_fields=["telefono", "correo"])
     return p
 
 
 def _validar_no_hospedados(datos):
     """Un pasajero no puede estar alojado en dos habitaciones a la vez."""
-    ruts = [r for _n, r in datos]
+    ruts = [d["rut"] for d in datos]
     hospedado = Pasajero.objects.filter(rut__in=ruts, asignaciones__estado="ACTIVA").first()
     if hospedado:
         raise ReglaError(f"El pasajero con RUT {hospedado.rut} ya está hospedado en el hotel.")
 
 
-def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuario_label):
+def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuario_label, representante=None):
     f_ini, f_ter, noches = fechas
-    pasajeros = [_pasajero_por_rut(n, r) for n, r in datos]
+    pasajeros = [_pasajero_por_rut(d) for d in datos]
     costo = calcular_costo(len(pasajeros), noches, hab.precio)         # RN-07
     asig = Asignacion.objects.create(
         habitacion=hab,
         responsable=pasajeros[idx_responsable - 1],                    # RN-10
+        representante=representante,
         costo_total=costo,
         fecha_inicio=f_ini,
         fecha_termino=f_ter,
@@ -48,14 +56,15 @@ def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuar
 
 
 @transaction.atomic
-def crear_asignacion(hab_id, texto_pasajeros, cantidad, idx_responsable, inicio, termino, usuario, usuario_label):
+def crear_asignacion(hab_id, filas_pasajeros, cantidad, idx_responsable, inicio, termino, usuario, usuario_label):
+    """filas_pasajeros: (nombres, ruts, telefonos, correos), una posición por fila del formulario."""
     try:
         hab = Habitacion.objects.get(pk=hab_id, activa=True)
     except Habitacion.DoesNotExist:
         raise ReglaError("La habitación seleccionada no está disponible.")
     if hab.ocupada():
         raise ReglaError(f"La habitación {hab.numero} ya está ocupada.")
-    datos = parsear_pasajeros(texto_pasajeros)
+    datos = parsear_pasajeros(*filas_pasajeros)
     validar_cantidad(cantidad, datos)
     if len(datos) > hab.capacidad:                                     # RN-06 / RF-14: igual o menos
         raise ReglaError(
@@ -70,11 +79,15 @@ def crear_asignacion(hab_id, texto_pasajeros, cantidad, idx_responsable, inicio,
 
 
 @transaction.atomic
-def crear_asignacion_multiple(hab_ids, texto_pasajeros, cantidad, responsables, inicio, termino, usuario, usuario_label):
-    """RF-17 / RN-09: grupo que supera la capacidad de la habitación más grande disponible."""
-    datos = parsear_pasajeros(texto_pasajeros)
+def crear_asignacion_multiple(hab_ids, filas_pasajeros, cantidad, responsables, idx_representante,
+                              inicio, termino, usuario, usuario_label):
+    """RF-17 / RN-09: grupo que supera la capacidad de la habitación más grande disponible.
+    idx_representante: posición (desde 1) del pasajero que representa a todo el grupo."""
+    datos = parsear_pasajeros(*filas_pasajeros)
     validar_cantidad(cantidad, datos)
     n = len(datos)
+    if not (1 <= idx_representante <= n):
+        raise ReglaError("Debe seleccionar un representante válido para el grupo.")
     libres = {h.id: h for h in habitaciones_libres()}
     if len(set(hab_ids)) != len(hab_ids) or len(hab_ids) < 2:
         raise ReglaError("Seleccione al menos dos habitaciones distintas.")
@@ -94,6 +107,7 @@ def crear_asignacion_multiple(hab_ids, texto_pasajeros, cantidad, responsables, 
     seleccion.sort(key=lambda h: (-h.capacidad, h.numero))
     fechas = parsear_fechas(inicio, termino, timezone.localdate())
     _validar_no_hospedados(datos)
+    representante = _pasajero_por_rut(datos[idx_representante - 1])
     ahora, desde, asignaciones = timezone.now(), 0, []
     for hab in seleccion:
         chunk = datos[desde:desde + hab.capacidad]
@@ -103,7 +117,8 @@ def crear_asignacion_multiple(hab_ids, texto_pasajeros, cantidad, responsables, 
         idx = responsables.get(hab.id, 1)
         if not (1 <= idx <= len(chunk)):
             raise ReglaError(f"Responsable inválido para la habitación {hab.numero}.")
-        asignaciones.append(_crear_asignacion(hab, chunk, idx, fechas, ahora, usuario, usuario_label))
+        asignaciones.append(_crear_asignacion(hab, chunk, idx, fechas, ahora, usuario, usuario_label, representante))
+    auditar(usuario_label, "GRUPO", f"Grupo de {n} pasajero(s); representante {representante.nombre} ({representante.rut})")
     return asignaciones
 
 

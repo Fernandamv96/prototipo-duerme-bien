@@ -1,0 +1,12 @@
+{# Filas de pasajeros: una por persona. ui.js agrega o quita filas según "Cantidad de pasajeros". #}
+<div class="db-pax-head" aria-hidden="true"><span>#</span><span>Nombre</span><span>RUT</span><span>Teléfono</span><span>Correo (opcional)</span></div>
+<div class="db-pax-list" data-filas>
+  <div class="db-pax" data-fila>
+    <span class="db-pax-n">1</span>
+    <input class="form-control" name="pasajero_nombre" placeholder="Nombre completo" aria-label="Nombre del pasajero 1" autocomplete="off" required>
+    <input class="form-control db-mono" name="pasajero_rut" placeholder="12345678-5" aria-label="RUT del pasajero 1" autocomplete="off" required>
+    <input class="form-control" name="pasajero_telefono" type="tel" inputmode="tel" placeholder="+56 9 1234 5678" aria-label="Teléfono del pasajero 1" autocomplete="off" required>
+    <input class="form-control" name="pasajero_correo" type="email" placeholder="correo@ejemplo.cl" aria-label="Correo del pasajero 1 (opcional)" autocomplete="off">
+    <small class="db-pax-msg" aria-live="polite"></small>
+  </div>
+</div>

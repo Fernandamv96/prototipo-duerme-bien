@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" role="img" aria-labelledby="t">
+  <title id="t">Ilustración de la habitación {{ hab.numero }}: {{ hab.capacidad }} cama{{ hab.capacidad|pluralize }}, {{ hab.get_orientacion_display|lower }}</title>
+  <defs>
+    <linearGradient id="muro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ p.muro1 }}"/><stop offset="1" stop-color="{{ p.muro2 }}"/></linearGradient>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ p.cielo1 }}"/><stop offset="1" stop-color="{{ p.cielo2 }}"/></linearGradient>
+    <linearGradient id="manta" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ p.manta1 }}"/><stop offset="1" stop-color="{{ p.manta2 }}"/></linearGradient>
+    <radialGradient id="luz" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#fbbf24" stop-opacity=".3"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+    <clipPath id="vent"><rect x="120" y="22" width="160" height="92" rx="10"/></clipPath>
+  </defs>
+  <rect width="400" height="250" fill="url(#muro)"/>
+  <rect y="196" width="400" height="54" fill="{{ p.piso }}"/>
+
+  <!-- Ventana -->
+  <rect x="120" y="22" width="160" height="92" rx="10" fill="url(#cielo)"/>
+  <g clip-path="url(#vent)">
+    {% if hab.orientacion == "MAR" %}
+    <circle cx="236" cy="62" r="16" fill="#fde68a"/>
+    <rect x="120" y="76" width="160" height="40" fill="{{ p.mar }}"/>
+    <path d="M128 86h22M170 92h30M222 84h26M140 100h34M206 104h40" stroke="#ffffff" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
+    {% else %}
+    <path d="M247 46a14 14 0 1 0 8 25a11 11 0 1 1-8-25z" fill="#fde68a"/>
+    <g fill="{{ p.edif }}">
+      <rect x="124" y="64" width="22" height="52"/><rect x="150" y="48" width="26" height="68"/><rect x="180" y="72" width="18" height="44"/>
+      <rect x="202" y="56" width="24" height="60"/><rect x="230" y="80" width="20" height="36"/><rect x="254" y="60" width="26" height="56"/>
+    </g>
+    <g fill="#fde68a" fill-opacity=".85">
+      <rect x="129" y="72" width="4" height="5"/><rect x="137" y="86" width="4" height="5"/><rect x="156" y="56" width="4" height="5"/>
+      <rect x="166" y="74" width="4" height="5"/><rect x="208" y="66" width="4" height="5"/><rect x="216" y="88" width="4" height="5"/>
+      <rect x="260" y="70" width="4" height="5"/><rect x="270" y="92" width="4" height="5"/><rect x="185" y="84" width="4" height="5"/>
+    </g>
+    {% endif %}
+  </g>
+  <rect x="120" y="22" width="160" height="92" rx="10" fill="none" stroke="{{ p.marco }}" stroke-width="4"/>
+  <line x1="200" y1="24" x2="200" y2="112" stroke="{{ p.marco }}" stroke-width="3"/>
+
+  <!-- Lámpara -->
+  <ellipse cx="34" cy="150" rx="46" ry="60" fill="url(#luz)"/>
+  <rect x="31" y="120" width="5" height="30" fill="{{ p.marco }}"/>
+  <path d="M20 122h27l-6-22H26z" fill="#fbbf24"/>
+
+  <!-- Camas: una por plaza -->
+  {% for c in camas %}
+  <g>
+    <rect x="{{ c.x }}" y="{{ c.cab_y }}" width="{{ c.w }}" height="{{ c.cab_h }}" rx="8" fill="{{ p.madera }}"/>
+    <rect x="{{ c.x }}" y="176" width="{{ c.w }}" height="34" rx="9" fill="{{ p.colchon }}"/>
+    <rect x="{{ c.alm_x }}" y="164" width="{{ c.alm_w }}" height="18" rx="8" fill="#f5f3ff"/>
+    <rect x="{{ c.x }}" y="184" width="{{ c.w }}" height="30" rx="9" fill="url(#manta)"/>
+    <rect x="{{ c.x }}" y="210" width="6" height="16" rx="2" fill="{{ p.madera }}"/>
+    <rect x="{{ c.pata_x }}" y="210" width="6" height="16" rx="2" fill="{{ p.madera }}"/>
+  </g>
+  {% endfor %}
+  {% if extra %}<text x="384" y="40" text-anchor="end" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#ffffff" fill-opacity=".8">+{{ extra }}</text>{% endif %}
+  <text x="16" y="36" font-family="system-ui, sans-serif" font-size="22" font-weight="800" fill="#ffffff" fill-opacity=".9">{{ hab.numero }}</text>
+</svg>

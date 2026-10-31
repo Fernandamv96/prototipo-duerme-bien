@@ -65,9 +65,21 @@ def login_admin(client):
     assert r.status_code == 302, r.content
 
 
+TELEFONO_PRUEBA = "+56912345678"
+
+
 def form(client, url, **data):
-    if "pasajeros" in data:      # como en el formulario real: la cantidad declarada coincide con la lista
-        data.setdefault("cantidad", str(len([l for l in data["pasajeros"].splitlines() if l.strip()])))
+    # Atajo de las pruebas: pasajeros="Nombre;RUT[;teléfono[;correo]]" (uno por línea) se convierte en las
+    # columnas del formulario real (una fila por pasajero) y la cantidad declarada coincide con la lista.
+    if "pasajeros" in data:
+        filas = [linea.split(";") + ["", "", ""] for linea in data.pop("pasajeros").splitlines() if linea.strip()]
+        data["pasajero_nombre"] = [f[0] for f in filas]
+        data["pasajero_rut"] = [f[1] for f in filas]
+        data["pasajero_telefono"] = [f[2] or TELEFONO_PRUEBA for f in filas]
+        data["pasajero_correo"] = [f[3] for f in filas]
+        data.setdefault("cantidad", str(len(filas)))
+    if url.endswith("/multiple"):
+        data.setdefault("representante", "1")
     data["csrfmiddlewaretoken"] = get_csrf(client, url)
     return data
 
