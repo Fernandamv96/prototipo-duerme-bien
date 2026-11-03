@@ -46,6 +46,8 @@ def _destino_seguro(request, usuario):
 
 
 def login(request):
+    if request.hotel_user is not None:                               # ya hay sesión: a su panel
+        return redirect("cuentas:index")
     destino = request.POST.get("next") or request.GET.get("next", "")
     seccion = SECCIONES.get(destino.split("?", 1)[0])
     ctx = {"next": destino, "seccion": seccion[0] if seccion else None}
