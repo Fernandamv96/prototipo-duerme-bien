@@ -5,7 +5,7 @@
 <div class="db-card db-spot mb-4 db-reveal"><div class="card-body p-4">
 <form method="post" action="{% url 'habitaciones:habitaciones' %}" class="row g-3 align-items-end">
   {% csrf_token %}
-  <div class="col-md-2"><label class="form-label" for="h-num">Número</label><input class="form-control" id="h-num" name="numero" placeholder="Ej. 101" inputmode="numeric" pattern="[0-9]+" maxlength="10" title="Solo números, p. ej. 101" required data-solo-numeros></div>
+  <div class="col-md-2"><label class="form-label" for="h-num">Número</label><input class="form-control" id="h-num" name="numero" placeholder="Ej. 101" inputmode="numeric" pattern="[1-9][0-9]*" maxlength="10" title="Número natural positivo, p. ej. 101" required data-solo-numeros></div>
   <div class="col-md-2"><label class="form-label" for="h-cap">Capacidad</label><input class="form-control" id="h-cap" name="capacidad" type="number" min="1" placeholder="Pasajeros" required></div>
   <div class="col-md-3"><label class="form-label" for="h-pre">Precio por pasajero/noche</label><input class="form-control" id="h-pre" name="precio" type="number" min="1" step="1" value="{{ precio_defecto }}" required></div>
   <div class="col-md-2"><label class="form-label" for="h-ori">Orientación</label><select class="form-select" id="h-ori" name="orientacion">

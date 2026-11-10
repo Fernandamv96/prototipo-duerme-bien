@@ -22,12 +22,22 @@ def _pasajero_por_rut(dato):
     return p
 
 
-def _validar_no_hospedados(datos):
-    """Un pasajero no puede estar alojado en dos habitaciones a la vez."""
+def _validar_sin_solapamiento(datos, fechas):
+    """Una misma persona no puede tener dos estadías activas con fechas superpuestas (la fecha de término
+    no cuenta: se puede ocupar una habitación el mismo día en que otra persona la deja)."""
+    f_ini, f_ter, _noches = fechas
     ruts = [d["rut"] for d in datos]
-    hospedado = Pasajero.objects.filter(rut__in=ruts, asignaciones__estado="ACTIVA").first()
-    if hospedado:
-        raise ReglaError(f"El pasajero con RUT {hospedado.rut} ya está hospedado en el hotel.")
+    choque = (
+        Asignacion.objects.filter(
+            estado="ACTIVA", pasajeros__rut__in=ruts, fecha_inicio__lt=f_ter, fecha_termino__gt=f_ini,
+        ).select_related("habitacion").distinct().first()
+    )
+    if choque:
+        rut = choque.pasajeros.filter(rut__in=ruts).first().rut
+        raise ReglaError(
+            f"El pasajero con RUT {rut} ya está hospedado en la habitación {choque.habitacion.numero} "
+            f"entre el {choque.fecha_inicio:%d-%m-%Y} y el {choque.fecha_termino:%d-%m-%Y}."
+        )
 
 
 def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuario_label, representante=None):
@@ -74,7 +84,7 @@ def crear_asignacion(hab_id, filas_pasajeros, cantidad, idx_responsable, inicio,
     if not (1 <= idx_responsable <= len(datos)):                       # RN-10
         raise ReglaError("Debe seleccionar un pasajero responsable válido.")
     fechas = parsear_fechas(inicio, termino, timezone.localdate())
-    _validar_no_hospedados(datos)
+    _validar_sin_solapamiento(datos, fechas)
     return _crear_asignacion(hab, datos, idx_responsable, fechas, timezone.now(), usuario, usuario_label)
 
 
@@ -106,7 +116,7 @@ def crear_asignacion_multiple(hab_ids, filas_pasajeros, cantidad, responsables, 
         )
     seleccion.sort(key=lambda h: (-h.capacidad, h.numero))
     fechas = parsear_fechas(inicio, termino, timezone.localdate())
-    _validar_no_hospedados(datos)
+    _validar_sin_solapamiento(datos, fechas)
     representante = _pasajero_por_rut(datos[idx_representante - 1])
     ahora, desde, asignaciones = timezone.now(), 0, []
     for hab in seleccion:

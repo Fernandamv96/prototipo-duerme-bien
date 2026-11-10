@@ -2,12 +2,13 @@
 from datetime import datetime
 
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from hotel.cuentas.models import ROL_ENCARGADO
 from hotel.cuentas.seguridad import requiere
 from hotel.habitaciones.models import Habitacion
 from hotel.pasajeros.models import Asignacion, HistorialOcupacion
+from hotel.reglas import PRECIO_POR_PASAJERO
 
 
 @requiere(ROL_ENCARGADO)
@@ -44,3 +45,25 @@ def historial(request):
         request, "reportes/historial.html",
         {"registros": registros, "desde": desde, "hasta": hasta, "habitacion": hab},
     )
+
+
+def _clp(monto):
+    """Pesos chilenos con punto de miles: 240000 -> '$240.000'."""
+    return "$" + f"{monto:,}".replace(",", ".")
+
+
+@requiere(ROL_ENCARGADO)
+def boleta(request, asig_id):
+    """Comprobante de la estadía: personas × noches × tarifa por persona y noche = total."""
+    asig = get_object_or_404(
+        Asignacion.objects.select_related("habitacion", "responsable", "representante", "registrado_por"), pk=asig_id,
+    )
+    pasajeros = asig.pasajeros.order_by("nombre")
+    n = pasajeros.count()
+    noches = asig.noches or 0
+    # El costo se calcula como personas × noches × tarifa, así que la tarifa se recupera exacta del total guardado
+    tarifa = asig.costo_total // (n * noches) if n and noches else PRECIO_POR_PASAJERO
+    return render(request, "reportes/boleta.html", {
+        "asig": asig, "pasajeros": pasajeros, "n": n, "noches": noches,
+        "tarifa": _clp(tarifa), "total": _clp(asig.costo_total), "numero": f"{asig.id:06d}",
+    })

@@ -5,6 +5,7 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.urls import Resolver404, resolve
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.cache import never_cache
 
 from hotel.reglas import ReglaError
 
@@ -45,6 +46,7 @@ def _destino_seguro(request, usuario):
     return destino
 
 
+@never_cache                                                         # que "Atrás" no muestre el login guardado
 def login(request):
     if request.hotel_user is not None:                               # ya hay sesión: a su panel
         return redirect("cuentas:index")

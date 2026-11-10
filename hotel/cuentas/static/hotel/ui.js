@@ -164,6 +164,9 @@
     el.addEventListener("input", function () { el.value = el.value.replace(/\D/g, ""); });
   });
 
+  // Botón "Imprimir" (la CSP no permite onclick en el HTML)
+  $$("[data-imprimir]").forEach(function (b) { b.addEventListener("click", function () { window.print(); }); });
+
   function telefonoValido(t) { return /^\+?\d{8,15}$/.test((t || "").replace(/[\s\-()]/g, "")); }
   // misma regla que hotel/reglas.py (correo_valido)
   function correoValido(c) {
@@ -211,6 +214,7 @@
         var rutN = normalizarRut(rut.value);
         var malos = [];
         if (!p.nombre) malos.push([nom, "falta el nombre"]);
+        else if (!/\p{L}/u.test(p.nombre)) malos.push([nom, "el nombre no puede ser solo números o símbolos"]);
         if (!rut.value.trim()) malos.push([rut, "falta el RUT"]);
         else if (!rutN) malos.push([rut, "RUT inválido: " + motivoRutInvalido(rut.value)]);
         else if (vistos[rutN]) malos.push([rut, "RUT repetido"]);

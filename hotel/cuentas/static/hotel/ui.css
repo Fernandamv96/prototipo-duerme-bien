@@ -420,3 +420,31 @@ main.container { max-width: 1240px; }
 .db-contacto { font-size: .82rem; white-space: nowrap; }
 .db-contacto a { text-decoration: none; }
 :root[data-theme="light"] .db-shiny { background-image: linear-gradient(110deg, var(--db-text) 35%, var(--db-violet) 50%, var(--db-text) 65%); }
+
+/* ------------------------------------------------------------------ Boleta / comprobante de estadía */
+.db-boleta { max-width: 760px; margin: 0 auto 2rem; padding: 2rem 2.2rem; }
+.db-boleta-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--db-border-strong); padding-bottom: 1rem; }
+.db-boleta-head > div:first-child { display: flex; align-items: center; gap: .6rem; }
+.db-boleta-hotel { font-size: 1.2rem; }
+.db-boleta-num { text-align: right; display: grid; gap: .15rem; }
+.db-boleta-num span { color: var(--db-muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+.db-boleta-num strong { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.db-boleta-num small { color: var(--db-muted); }
+.db-boleta-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem 1.2rem; margin: 1.4rem 0 .4rem; }
+.db-boleta-datos dt { color: var(--db-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.db-boleta-datos dd { margin: .15rem 0 0; font-weight: 600; }
+.db-boleta-cobro td { padding: .6rem 1rem; }
+.db-boleta-total td { border-top: 1px solid var(--db-border-strong); font-size: 1.05rem; }
+.db-boleta-total small { color: var(--db-muted); }
+.db-boleta-nota { color: var(--db-muted); font-size: .8rem; margin: 1.2rem 0 0; }
+.db-boleta-acciones { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1.2rem; }
+
+@media print {
+  .db-nav, .db-aurora, .db-theme-btn, .db-boleta-acciones, .db-reveal { display: none !important; animation: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  main.container { max-width: none; padding: 0; }
+  .db-boleta { box-shadow: none !important; border: 1px solid #888 !important; background: #fff !important; color: #000 !important; margin: 0; }
+  .db-boleta *, .table, .table td, .table th, .db-section-title, .db-boleta-num span, .db-boleta-datos dt, .db-boleta-nota { color: #000 !important; border-color: #aaa !important; }
+  .db-boleta-datos, .db-boleta-datos *, .db-boleta { opacity: 1 !important; transform: none !important; }
+  .table { --bs-table-bg: transparent; }
+}

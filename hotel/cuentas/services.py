@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 
-from hotel.reglas import ReglaError, correo_valido
+from hotel.reglas import ReglaError, correo_valido, nombre_valido
 
 from .models import ROL_ENCARGADO, Usuario, auditar
 
@@ -15,6 +15,8 @@ def crear_usuario(nombre, username, password, usuario_label, correo=""):
     nombre, username, correo = (nombre or "").strip(), (username or "").strip(), (correo or "").strip().lower()
     if not nombre or not username or not password:
         raise ReglaError("Nombre, usuario y contraseña son obligatorios.")
+    if not nombre_valido(nombre):
+        raise ReglaError("El nombre no puede ser solo números o símbolos.")
     if correo and not correo_valido(correo):
         raise ReglaError(f"El correo {correo} no es válido.")
     try:

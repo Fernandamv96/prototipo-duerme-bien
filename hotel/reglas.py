@@ -75,6 +75,8 @@ def parsear_pasajeros(nombres, ruts, telefonos, correos=None):
         nombre, rut, telefono, correo = (str(v or "").strip() for v in (nombre, rut, telefono, correo))
         if not (nombre or rut or telefono or correo):
             continue
+        if nombre and not nombre_valido(nombre):
+            raise ReglaError(f"Pasajero {i}: el nombre no puede ser solo números o símbolos.")
         faltan = [campo for campo, valor in (("nombre", nombre), ("RUT", rut), ("teléfono", telefono)) if not valor]
         if faltan:
             raise ReglaError(f"Pasajero {i}: falta {' y '.join(faltan)} (RF-13).")
@@ -94,12 +96,20 @@ def parsear_pasajeros(nombres, ruts, telefonos, correos=None):
     return pasajeros
 
 
+NUMERO_HABITACION_RE = re.compile(r"^[1-9][0-9]{0,9}$")   # número natural positivo, sin ceros a la izquierda
+
+
 def validar_numero_habitacion(numero):
-    """El número de habitación solo admite dígitos (p. ej. 101)."""
+    """El número de habitación es un número natural positivo (p. ej. 101): sin letras, signos ni cero."""
     numero = (numero or "").strip()
-    if not numero.isdigit() or not numero.isascii():
-        raise ReglaError("El número de habitación solo puede contener números (p. ej. 101).")
+    if not NUMERO_HABITACION_RE.match(numero):
+        raise ReglaError("El número de habitación debe ser un número natural positivo, sin letras ni signos (p. ej. 101).")
     return numero
+
+
+def nombre_valido(nombre):
+    """Un nombre de persona debe tener al menos una letra: no puede ser solo números ni símbolos."""
+    return bool(re.search(r"[^\W\d_]", nombre or ""))
 
 
 def validar_cantidad(cantidad, pasajeros):

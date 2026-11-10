@@ -1,4 +1,4 @@
-"""Ajusta el precio (por pasajero y por noche) de las habitaciones activas según la tarifa de referencia.
+"""Deja el precio (por pasajero y por noche) de las habitaciones activas en la tarifa estándar, PRECIO_POR_PASAJERO.
 
 Sin --aplicar solo muestra la tabla de cambios. Las asignaciones ya registradas conservan su costo.
 """
@@ -7,22 +7,15 @@ from django.db import transaction
 
 from hotel.cuentas.models import auditar
 from hotel.habitaciones.models import Habitacion
-
-# Tarifa por pasajero y por noche: en habitaciones más grandes cada persona paga menos; la vista al mar cuesta más.
-TARIFA = {
-    1: {"MAR": 48000, "CIUDAD": 42000},
-    2: {"MAR": 42000, "CIUDAD": 36000},
-    3: {"MAR": 38000, "CIUDAD": 32000},
-    4: {"MAR": 34000, "CIUDAD": 28000},
-}
+from hotel.reglas import PRECIO_POR_PASAJERO
 
 
 def precio_sugerido(hab):
-    return TARIFA[min(max(hab.capacidad, 1), 4)][hab.orientacion]
+    return PRECIO_POR_PASAJERO
 
 
 class Command(BaseCommand):
-    help = "Ajusta el precio de las habitaciones activas según la tarifa de referencia (use --aplicar para guardar)."
+    help = "Deja las habitaciones activas en la tarifa estándar de $40.000 (use --aplicar para guardar)."
 
     def add_arguments(self, parser):
         parser.add_argument("--aplicar", action="store_true", help="Guarda los precios nuevos (si no, solo los muestra).")
@@ -37,6 +30,6 @@ class Command(BaseCommand):
             if options["aplicar"] and hab.precio != nuevo:
                 anterior, hab.precio = hab.precio, nuevo
                 hab.save(update_fields=["precio"])
-                auditar("sistema", "PRECIO_CAMBIADO", f"Habitación {hab.numero}: ${anterior} → ${nuevo} (tarifa de referencia)")
+                auditar("sistema", "PRECIO_CAMBIADO", f"Habitación {hab.numero}: ${anterior} → ${nuevo} (tarifa estándar)")
                 cambios += 1
         self.stdout.write(f"{cambios} precio(s) actualizados." if options["aplicar"] else "Vista previa: use --aplicar para guardar.")

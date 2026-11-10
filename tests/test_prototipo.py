@@ -486,11 +486,11 @@ def test_pf18_fechas_escritas_a_mano(client, encargado_user):
 
 def test_pf19_numero_de_habitacion_solo_digitos(client, encargado_user):
     login_enc(client)
-    for malo in ("BBBB", "10A", "1-01", "１０１"):
+    for malo in ("BBBB", "10A", "1-01", "１０１", "0", "010", "-5"):
         r = crear_hab(client, malo, 2)
         assert not Habitacion.objects.filter(numero=malo).exists()
     r = client.post("/habitaciones", form(client, "/habitaciones", numero="10A", capacidad=2, orientacion="MAR", precio=40000), follow=True)
-    assert "solo puede contener números" in r.content.decode()
+    assert "número natural positivo" in r.content.decode()
 
 
 def test_pf20_grupo_con_representante(client, encargado_user):
@@ -532,14 +532,14 @@ def test_pf22_foto_ilustrada_de_la_habitacion(client, encargado_user):
     assert not __import__("re").search(r'(x|width)="\d+,\d', svg)     # coordenadas con punto, no coma
 
 
-def test_pf23_ajustar_precios_con_tarifa_de_referencia(encargado_user):
+def test_pf23_ajustar_precios_a_tarifa_estandar(encargado_user):
     from django.core.management import call_command
     h1 = Habitacion.objects.create(numero="991", capacidad=4, orientacion="MAR", precio=230000)
     h2 = Habitacion.objects.create(numero="992", capacidad=1, orientacion="CIUDAD", precio=60000)
     call_command("ajustar_precios")                              # sin --aplicar no cambia nada
     assert Habitacion.objects.get(pk=h1.pk).precio == 230000
     call_command("ajustar_precios", aplicar=True)
-    assert (Habitacion.objects.get(pk=h1.pk).precio, Habitacion.objects.get(pk=h2.pk).precio) == (34000, 42000)
+    assert (Habitacion.objects.get(pk=h1.pk).precio, Habitacion.objects.get(pk=h2.pk).precio) == (40000, 40000)
 
 
 def test_ps09_validacion_estricta_de_correo():
@@ -555,3 +555,87 @@ def test_ps10_recursos_externos_con_integridad_sri(client):
     html = client.get("/login").content.decode()
     enlaces = __import__("re").findall(r'<link rel="stylesheet" href="https://[^>]+>', html)
     assert enlaces and all('integrity="sha384-' in e and 'crossorigin="anonymous"' in e for e in enlaces)
+
+
+# ------------------------------------------------------------ rúbrica evaluación 4
+def test_r01_nombre_de_pasajero_no_puede_ser_solo_numeros(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "910", 2)
+    r = client.post("/asignar", form(
+        client, "/asignar", **fechas(), habitacion_id=hab_id("910"), pasajeros=f"12345;{R1}", responsable="1",
+    ), follow=True)
+    assert "el nombre no puede ser solo números" in r.content.decode()
+    assert not Asignacion.objects.exists()
+
+
+def test_r02_nombre_de_encargado_no_puede_ser_solo_numeros(client, admin_user):
+    login_admin(client)
+    r = client.post("/admin-hotel/usuarios", form(
+        client, "/admin-hotel/usuarios", nombre="4321", username="numeros", password="Clave#segura1",
+    ), follow=True)
+    assert "no puede ser solo números" in r.content.decode()
+    assert not Usuario.objects.filter(username="numeros").exists()
+
+
+def test_r03_misma_persona_no_puede_tener_estadias_superpuestas(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "911", 2)
+    crear_hab(client, "912", 2)
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=3), habitacion_id=hab_id("911"), pasajeros=f"Ana;{R1}", responsable="1"))
+    # se superpone (día 1 a 3 con 0 a 3)
+    r = client.post("/asignar", form(client, "/asignar", **fechas(noches=2, desde=1), habitacion_id=hab_id("912"), pasajeros=f"Ana;{R1}", responsable="1"), follow=True)
+    assert "ya está hospedado en la habitación 911" in r.content.decode()
+    assert Asignacion.objects.count() == 1
+
+
+def test_r04_misma_persona_puede_reservar_despues_de_su_salida(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "913", 2)
+    crear_hab(client, "914", 2)
+    crear_hab(client, "917", 2)
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=2), habitacion_id=hab_id("913"), pasajeros=f"Ana;{R1}", responsable="1"))
+    # empieza el mismo día en que termina la anterior, y otra estadía más adelante
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=1, desde=2), habitacion_id=hab_id("914"), pasajeros=f"Ana;{R1}", responsable="1"))
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=1, desde=30), habitacion_id=hab_id("917"), pasajeros=f"Ana;{R1}", responsable="1"))
+    assert Asignacion.objects.filter(pasajeros__rut=R1).count() == 3
+
+
+def test_r05_numero_de_habitacion_natural_positivo(client, encargado_user):
+    from hotel.reglas import validar_numero_habitacion
+    from hotel.reglas import ReglaError
+    for bueno in ("1", "101", "9999"):
+        assert validar_numero_habitacion(bueno) == bueno
+    for malo in ("0", "00", "010", "-1", "1.5", "1 0", "A1", "1#"):
+        try:
+            validar_numero_habitacion(malo)
+            assert False, malo
+        except ReglaError:
+            pass
+
+
+def test_r06_boleta_muestra_personas_noches_tarifa_y_total(client, encargado_user):
+    login_enc(client)
+    crear_hab(client, "915", 3, ori="CIUDAD")
+    client.post("/asignar", form(client, "/asignar", **fechas(noches=2), habitacion_id=hab_id("915"),
+                                 pasajeros=f"Ana;{R1}\nBeto;{R2}\nCarla;{R3}", responsable="1"))
+    a = Asignacion.objects.get()
+    html = client.get(f"/boleta/{a.id}").content.decode()
+    assert f"N° {a.id:06d}" in html
+    assert "Habitación" in html and ">915<" in html and "Vista a la ciudad" in html
+    assert "3 × 2 × $40.000" in html and "$240.000" in html                # personas × noches × tarifa = total
+    assert "Comprobante interno" in html                                    # no se presenta como boleta del SII
+    for rut in (R1, R2, R3):
+        assert rut in html
+
+
+def test_r07_boleta_solo_para_encargado(client, encargado_user, admin_user):
+    login_enc(client)
+    crear_hab(client, "916", 1)
+    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hab_id("916"), pasajeros=f"Ana;{R1}", responsable="1"))
+    a = Asignacion.objects.get()
+    assert client.get(f"/boleta/{a.id}").status_code == 200
+    assert client.get("/boleta/999999").status_code == 404
+    client.post("/logout", form(client, "/encargado"))
+    assert client.get(f"/boleta/{a.id}").status_code == 302                 # sin sesión: al login
+    login_admin(client)
+    assert client.get(f"/boleta/{a.id}").status_code == 403                 # el administrador no emite estadías

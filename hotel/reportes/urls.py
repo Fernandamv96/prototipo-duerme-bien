@@ -8,4 +8,5 @@ urlpatterns = [
     path("estado", views.estado, name="estado"),
     path("hospedados", views.hospedados, name="hospedados"),
     path("historial", views.historial, name="historial"),
+    path("boleta/<int:asig_id>", views.boleta, name="boleta"),
 ]

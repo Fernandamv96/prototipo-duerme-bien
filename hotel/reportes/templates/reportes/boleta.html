@@ -1,0 +1,60 @@
+{% extends "base.html" %}{% block content %}
+<div class="db-card db-boleta db-reveal">
+  <header class="db-boleta-head">
+    <div>
+      <span class="db-brand-logo" aria-hidden="true">☾</span>
+      <strong class="db-boleta-hotel">Hotel Duerme Bien</strong>
+    </div>
+    <div class="db-boleta-num">
+      <span>Comprobante de estadía</span>
+      <strong>N° {{ numero }}</strong>
+      <small>Emitido el {% now "d-m-Y H:i" %} por {{ asig.registrado_por.nombre }}</small>
+    </div>
+  </header>
+
+  <dl class="db-boleta-datos">
+    <div><dt>Habitación</dt><dd class="db-room">{{ asig.habitacion.numero }}</dd></div>
+    <div><dt>Vista</dt><dd>{{ asig.habitacion.get_orientacion_display }}</dd></div>
+    <div><dt>Llegada</dt><dd>{{ asig.fecha_inicio|date:"d-m-Y" }}</dd></div>
+    <div><dt>Salida</dt><dd>{{ asig.fecha_termino|date:"d-m-Y" }}</dd></div>
+    <div><dt>Noches</dt><dd>{{ noches }}</dd></div>
+    <div><dt>Estado</dt><dd>{% if asig.estado == "ACTIVA" %}Hospedado{% else %}Finalizada{% endif %}</dd></div>
+  </dl>
+
+  <h2 class="db-section-title">Pasajeros ({{ n }})</h2>
+  <div class="db-table-wrap">
+  <table class="table">
+    <thead><tr><th>Nombre</th><th>RUT</th><th>Rol en la estadía</th></tr></thead>
+    <tbody>
+    {% for p in pasajeros %}
+      <tr>
+        <td><strong>{{ p.nombre }}</strong></td>
+        <td class="db-mono">{{ p.rut }}</td>
+        <td>
+          {% if p.id == asig.responsable_id %}Responsable de la habitación{% endif %}
+          {% if p.id == asig.representante_id %}{% if p.id == asig.responsable_id %} · {% endif %}Representante del grupo{% endif %}
+          {% if p.id != asig.responsable_id and p.id != asig.representante_id %}Huésped{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <h2 class="db-section-title">Detalle del cobro</h2>
+  <table class="table db-boleta-cobro">
+    <tbody>
+      <tr><td>Pasajeros</td><td class="text-end">{{ n }}</td></tr>
+      <tr><td>Noches</td><td class="text-end">{{ noches }}</td></tr>
+      <tr><td>Tarifa por pasajero y noche</td><td class="text-end">{{ tarifa }}</td></tr>
+      <tr class="db-boleta-total"><td><strong>Total a cobrar</strong><br><small>{{ n }} × {{ noches }} × {{ tarifa }}</small></td><td class="text-end"><strong>{{ total }}</strong></td></tr>
+    </tbody>
+  </table>
+
+  <p class="db-boleta-nota">Comprobante interno de la estadía. No corresponde a una boleta electrónica del SII.</p>
+  <div class="db-boleta-acciones">
+    <button type="button" class="btn btn-primary" data-imprimir>Imprimir</button>
+    <a class="btn btn-outline-secondary" href="{% url 'reportes:hospedados' %}">Volver a hospedados</a>
+  </div>
+</div>
+{% endblock %}
