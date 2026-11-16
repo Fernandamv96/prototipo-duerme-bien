@@ -388,6 +388,17 @@ main.container { max-width: 1240px; }
 .db-asig-top { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 1.5rem; align-items: start; }
 .db-hab-foto { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 14px; box-shadow: 0 0 0 1px var(--db-border), 0 18px 40px -24px rgba(0,0,0,.7); }
 @media (max-width: 760px) { .db-asig-top { grid-template-columns: 1fr; } }
+/* Etiqueta de capacidad y vista sobre las fotos referenciales (una foto por vista: mar / ciudad) */
+.db-foto { position: relative; display: block; margin: 0; }
+.db-foto-tag { position: absolute; top: .6rem; left: .6rem; padding: .22rem .6rem; border-radius: 999px; font-size: .74rem; font-weight: 600;
+  color: #fff; background: rgba(15,12,30,.72); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(6px); pointer-events: none; }
+.db-foto-nota { position: absolute; right: .55rem; bottom: .5rem; padding: .08rem .45rem; border-radius: 6px; font-size: .64rem;
+  color: rgba(255,255,255,.88); background: rgba(15,12,30,.55); pointer-events: none; }
+.db-foto-card { width: calc(100% + 2.2rem); margin: -1rem -1.1rem .8rem; }
+.db-foto-card .db-room-foto { width: 100%; margin: 0; }
+/* En las tarjetas de grupo la casilla va arriba a la derecha: la etiqueta baja y la nota sube a la izquierda */
+.db-foto-card .db-foto-tag { top: auto; bottom: .5rem; left: .55rem; font-size: .7rem; }
+.db-foto-card .db-foto-nota { bottom: auto; top: .55rem; right: auto; left: .55rem; }
 .db-room-foto { display: block; width: calc(100% + 2.2rem); max-width: none; height: auto; aspect-ratio: 16 / 10; object-fit: cover; margin: -1rem -1.1rem .8rem; border-radius: 14px 14px 0 0; }
 
 /* ------------------------------------------------------------------ Fecha escrita a mano + botón de calendario */

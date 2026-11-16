@@ -545,7 +545,9 @@ def test_pf22b_imagen_del_hotel_y_foto_segun_vista(client, encargado_user):
     crear_hab(client, "302", 2, ori="CIUDAD")
     html = client.get("/habitaciones").content.decode()
     assert "hotel/habitacion_mar.jpg" in html and "hotel/habitacion_ciudad.jpg" in html
-    assert "hotel/habitacion_" in client.get("/asignar").content.decode()
+    asignar = client.get("/asignar").content.decode()
+    assert "hotel/habitacion_" in asignar
+    assert "2 pasajeros · Vista al mar" in asignar and "Imagen referencial" in asignar   # etiqueta sobre la foto
 
 
 def test_pf23_ajustar_precios_a_tarifa_estandar(encargado_user):

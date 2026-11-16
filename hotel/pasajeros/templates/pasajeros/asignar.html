@@ -7,11 +7,15 @@ La cantidad puede ser igual o menor a la capacidad de la habitación.</p>
 <form method="post" action="{% url 'pasajeros:asignar' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
   <div class="db-asig-top">
-    <img class="db-hab-foto" src="{% static libres.0.foto_estatica %}" alt="Habitación seleccionada (imagen ilustrativa según su vista)" width="400" height="250" data-foto>
+    <figure class="db-foto">
+      <img class="db-hab-foto" src="{% static libres.0.foto_estatica %}" alt="Habitación seleccionada (imagen ilustrativa según su vista)" width="400" height="250" data-foto>
+      <span class="db-foto-tag" data-foto-tag>{{ libres.0.capacidad }} pasajero{{ libres.0.capacidad|pluralize }} · {{ libres.0.get_orientacion_display }}</span>
+      <span class="db-foto-nota">Imagen referencial</span>
+    </figure>
     <div class="row g-3 align-content-start">
       <div class="col-12"><label class="form-label" for="a-hab">Habitación</label>
         <select class="form-select" id="a-hab" name="habitacion_id" required>
-        {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ tarifa }}" data-foto="{% static h.foto_estatica %}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }})</option>{% endfor %}
+        {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ tarifa }}" data-foto="{% static h.foto_estatica %}" data-tag="{{ h.capacidad }} pasajero{{ h.capacidad|pluralize }} · {{ h.get_orientacion_display }}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }})</option>{% endfor %}
         </select></div>
       <div class="col-sm-4"><label class="form-label" for="a-cant">Cantidad de pasajeros</label>
         <input class="form-control" id="a-cant" type="number" name="cantidad" value="1" min="1" max="30" step="1" required data-cantidad></div>

@@ -27,7 +27,11 @@ elegidas debe ser igual o mayor al total de pasajeros. El costo es de <strong>{{
   <div class="db-rooms">
   {% for h in libres %}
     <label class="db-room-card">
-      <img class="db-room-foto" src="{% static h.foto_estatica %}" alt="" width="400" height="250" loading="lazy">
+      <span class="db-foto db-foto-card">
+        <img class="db-room-foto" src="{% static h.foto_estatica %}" alt="" width="400" height="250" loading="lazy">
+        <span class="db-foto-tag">{{ h.capacidad }} pasajero{{ h.capacidad|pluralize }} · {{ h.get_orientacion_display }}</span>
+        <span class="db-foto-nota">Imagen referencial</span>
+      </span>
       <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ tarifa }}" data-num="{{ h.numero }}" aria-label="Habitación {{ h.numero }}">
       <div class="db-room">{{ h.numero }}</div>
       <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }} · {{ tarifa_clp }}</div>

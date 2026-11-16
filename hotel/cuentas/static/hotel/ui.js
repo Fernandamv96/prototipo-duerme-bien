@@ -183,7 +183,7 @@
     var outP = box.querySelector("[data-n-pasajeros]"), outC = box.querySelector("[data-n-capacidad]"), state = box.querySelector(".db-state");
     var outN = box.querySelector("[data-n-noches]"), outT = box.querySelector("[data-total]");
     var ini = form.querySelector("input[name=fecha_inicio]"), ter = form.querySelector("input[name=fecha_termino]");
-    var selHab = form.querySelector("select[name=habitacion_id]"), foto = form.querySelector("[data-foto]");
+    var selHab = form.querySelector("select[name=habitacion_id]"), foto = form.querySelector("[data-foto]"), fotoTag = form.querySelector("[data-foto-tag]");
     var inCant = form.querySelector("[data-cantidad]"), selRep = form.querySelector("[data-representante]");
 
     // Tantas filas como "Cantidad de pasajeros" (se conservan los datos ya escritos)
@@ -292,7 +292,11 @@
     form.addEventListener("invalid", function () { $$("input", cont).forEach(function (i) { i.dataset.tocado = "1"; }); update(); }, true);
     form.addEventListener("input", function (e) { if (e.target === inCant) ajustarFilas(); update(); });
     form.addEventListener("change", function (e) {
-      if (e.target === selHab && foto) foto.src = selHab.options[selHab.selectedIndex].getAttribute("data-foto");
+      if (e.target === selHab && foto) {
+        var opt = selHab.options[selHab.selectedIndex];
+        foto.src = opt.getAttribute("data-foto");
+        if (fotoTag) fotoTag.textContent = opt.getAttribute("data-tag");   // capacidad y vista de la habitación elegida
+      }
       update();
     });
     ajustarFilas();

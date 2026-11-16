@@ -16,7 +16,7 @@
 <table class="table"><thead><tr><th>Foto</th><th>Número</th><th>Capacidad</th><th>Orientación</th><th>Tarifa por pasajero/noche</th><th>Estado</th><th></th></tr></thead>
 <tbody>
 {% for h in habitaciones %}
-<tr><td><img class="db-thumb" src="{% static h.foto_estatica %}" alt="Habitación {{ h.numero }}, {{ h.get_orientacion_display|lower }} (imagen ilustrativa)" width="96" height="60" loading="lazy"></td><td class="db-room">{{ h.numero }}</td><td>{{ h.capacidad }} pax</td><td>{{ h.get_orientacion_display }}</td>
+<tr><td><img class="db-thumb" src="{% static h.foto_estatica %}" alt="Habitación {{ h.numero }}, {{ h.get_orientacion_display|lower }} (imagen ilustrativa)" title="Imagen referencial: {{ h.capacidad }} pasajero{{ h.capacidad|pluralize }} · {{ h.get_orientacion_display }}" width="96" height="60" loading="lazy"></td><td class="db-room">{{ h.numero }}</td><td>{{ h.capacidad }} pax</td><td>{{ h.get_orientacion_display }}</td>
 <td>{{ tarifa_clp }}</td>
 <td>{% if h.ocupada %}<span class="db-badge ocupada">Ocupada</span>{% else %}<span class="db-badge vacante">Vacante</span>{% endif %}</td>
 <td class="text-end"><form method="post" action="{% url 'habitaciones:eliminar' h.id %}" class="m-0">
