@@ -386,9 +386,9 @@ main.container { max-width: 1240px; }
 /* ------------------------------------------------------------------ Fotos (ilustraciones) de habitaciones */
 .db-thumb { display: block; width: 96px; height: 60px; border-radius: 10px; object-fit: cover; box-shadow: 0 0 0 1px var(--db-border); }
 .db-asig-top { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 1.5rem; align-items: start; }
-.db-hab-foto { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 0 0 1px var(--db-border), 0 18px 40px -24px rgba(0,0,0,.7); }
+.db-hab-foto { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 14px; box-shadow: 0 0 0 1px var(--db-border), 0 18px 40px -24px rgba(0,0,0,.7); }
 @media (max-width: 760px) { .db-asig-top { grid-template-columns: 1fr; } }
-.db-room-foto { display: block; width: calc(100% + 2.2rem); max-width: none; height: auto; margin: -1rem -1.1rem .8rem; border-radius: 14px 14px 0 0; }
+.db-room-foto { display: block; width: calc(100% + 2.2rem); max-width: none; height: auto; aspect-ratio: 16 / 10; object-fit: cover; margin: -1rem -1.1rem .8rem; border-radius: 14px 14px 0 0; }
 
 /* ------------------------------------------------------------------ Fecha escrita a mano + botón de calendario */
 .db-fecha { position: relative; }

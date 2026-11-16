@@ -29,3 +29,8 @@ class Habitacion(models.Model):
 
     def ocupada(self):
         return self.asignaciones.filter(estado="ACTIVA").exists()
+
+    @property
+    def foto_estatica(self):
+        """Foto ilustrativa según la vista de la habitación (Eval. 4: gestión de vistas mar / ciudad)."""
+        return "hotel/habitacion_mar.jpg" if self.orientacion == "MAR" else "hotel/habitacion_ciudad.jpg"

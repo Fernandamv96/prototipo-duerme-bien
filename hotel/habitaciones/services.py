@@ -1,6 +1,6 @@
 """Servicios de dominio - módulo habitaciones (RF-07 a RF-11)."""
 from hotel.cuentas.models import auditar
-from hotel.reglas import ReglaError, parsear_precio, validar_numero_habitacion
+from hotel.reglas import PRECIO_POR_PASAJERO, ReglaError, validar_numero_habitacion
 
 from .models import ORIENTACIONES, Habitacion
 
@@ -11,7 +11,7 @@ def habitaciones_libres():
     return [h for h in Habitacion.objects.filter(activa=True).order_by("numero") if not h.ocupada()]
 
 
-def registrar_habitacion(numero, capacidad, orientacion, precio, usuario_label):
+def registrar_habitacion(numero, capacidad, orientacion, usuario_label):
     numero = validar_numero_habitacion(numero)
     try:
         capacidad = int(capacidad)
@@ -22,7 +22,7 @@ def registrar_habitacion(numero, capacidad, orientacion, precio, usuario_label):
     hab = Habitacion.objects.filter(numero=numero).first()
     if hab is not None and hab.activa:
         raise ReglaError(f"La habitación {numero} ya existe (RN-03).")
-    precio = parsear_precio(precio)
+    precio = PRECIO_POR_PASAJERO           # RN-07: tarifa única; no se acepta otro valor
     if hab is not None:
         # Número de una habitación dada de baja: se reactiva con los datos nuevos y conserva su historial
         hab.capacidad, hab.orientacion, hab.precio, hab.activa = capacidad, orientacion, precio, True
@@ -33,13 +33,6 @@ def registrar_habitacion(numero, capacidad, orientacion, precio, usuario_label):
     hab = Habitacion.objects.create(numero=numero, capacidad=capacidad, orientacion=orientacion, precio=precio)
     auditar(usuario_label, "HABITACION_CREADA", f"Habitación {numero}, cap. {capacidad}, {orientacion}, ${precio}")
     return hab
-
-
-def cambiar_precio(hab, precio, usuario_label):
-    """El nuevo precio rige para las próximas asignaciones; las ya registradas mantienen su costo."""
-    anterior, hab.precio = hab.precio, parsear_precio(precio)
-    hab.save(update_fields=["precio"])
-    auditar(usuario_label, "PRECIO_CAMBIADO", f"Habitación {hab.numero}: ${anterior} → ${hab.precio}")
 
 
 def eliminar_habitacion(hab, usuario_label):

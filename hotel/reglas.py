@@ -6,7 +6,7 @@ Se mantienen separadas de los modelos para que puedan probarse de forma aislada
 import re
 from datetime import date
 
-PRECIO_POR_PASAJERO = 40000          # RN-07: precio por defecto (por pasajero y por noche) de una habitación nueva
+PRECIO_POR_PASAJERO = 40000          # RN-07: tarifa única del hotel, por pasajero y por noche (Evaluación 4)
 MAX_NOCHES = 90                      # tope razonable de estadía para evitar errores de digitación
 MIN_PASSWORD = 8
 
@@ -156,9 +156,9 @@ def parsear_fechas(inicio, termino, hoy):
     return f_ini, f_ter, noches
 
 
-def calcular_costo(n_pasajeros, noches, precio):
-    """RN-07: pasajeros × noches × precio por pasajero de la habitación."""
-    return n_pasajeros * noches * precio
+def calcular_costo(n_pasajeros, noches):
+    """RN-07: pasajeros × noches × $40.000. La tarifa es única y no se puede modificar desde la interfaz."""
+    return n_pasajeros * noches * PRECIO_POR_PASAJERO
 
 
 def parsear_precio(precio):

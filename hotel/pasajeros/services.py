@@ -43,7 +43,7 @@ def _validar_sin_solapamiento(datos, fechas):
 def _crear_asignacion(hab, datos, idx_responsable, fechas, ahora, usuario, usuario_label, representante=None):
     f_ini, f_ter, noches = fechas
     pasajeros = [_pasajero_por_rut(d) for d in datos]
-    costo = calcular_costo(len(pasajeros), noches, hab.precio)         # RN-07
+    costo = calcular_costo(len(pasajeros), noches)                    # RN-07: tarifa única $40.000
     asig = Asignacion.objects.create(
         habitacion=hab,
         responsable=pasajeros[idx_responsable - 1],                    # RN-10

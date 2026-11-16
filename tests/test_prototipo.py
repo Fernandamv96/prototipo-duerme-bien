@@ -196,10 +196,10 @@ def test_pf09b_registrar_numero_dado_de_baja_lo_reactiva(client, encargado_user)
     crear_hab(client, "209", 3)
     hid = hab_id("209")
     client.post(f"/habitaciones/{hid}/eliminar", form(client, "/habitaciones"))
-    r = crear_hab(client, "209", 2, ori="CIUDAD", precio=50000)
+    r = crear_hab(client, "209", 2, ori="CIUDAD")
     assert r.status_code == 302
     h = Habitacion.objects.get(numero="209")
-    assert h.id == hid and h.activa and (h.capacidad, h.orientacion, h.precio) == (2, "CIUDAD", 50000)
+    assert h.id == hid and h.activa and (h.capacidad, h.orientacion, h.precio) == (2, "CIUDAD", 40000)
 
 
 def test_pf16b_grafico_de_ocupacion_por_cama(client, encargado_user):
@@ -215,29 +215,31 @@ def test_pf16b_grafico_de_ocupacion_por_cama(client, encargado_user):
     assert "Habitación 211: 2 de 4 camas ocupadas" in html
 
 
-def test_pf12d_cada_habitacion_cobra_su_precio(client, encargado_user):
+def test_pf12d_tarifa_unica_aunque_se_envie_otro_precio(client, encargado_user):
+    """Eval. 4: siempre $40.000 por persona y noche; un precio enviado a mano en el formulario se ignora."""
     login_enc(client)
     crear_hab(client, "206", 2, precio=55000)
+    assert Habitacion.objects.get(numero="206").precio == 40000
     client.post("/asignar", form(client, "/asignar", **fechas(noches=2), habitacion_id=hab_id("206"), pasajeros=f"A;{R1}\nB;{R2}", responsable="1"))
-    assert Asignacion.objects.get().costo_total == 2 * 2 * 55000
+    assert Asignacion.objects.get().costo_total == 2 * 2 * 40000
 
 
-def test_pf12e_cambio_de_precio_no_altera_asignaciones_registradas(client, encargado_user):
+def test_pf12e_no_existe_edicion_de_precio(client, encargado_user):
+    """La ruta para cambiar el precio ya no existe: la tarifa no se puede modificar desde la interfaz."""
     login_enc(client)
     crear_hab(client, "207", 1)
     hid = hab_id("207")
-    client.post("/asignar", form(client, "/asignar", **fechas(), habitacion_id=hid, pasajeros=f"A;{R1}", responsable="1"))
     r = client.post(f"/habitaciones/{hid}/precio", form(client, "/habitaciones", precio="65.000"))
-    assert r.status_code == 302
-    assert Habitacion.objects.get(pk=hid).precio == 65000
-    assert Asignacion.objects.get().costo_total == 40000
-    assert Auditoria.objects.filter(accion="PRECIO_CAMBIADO").exists()
+    assert r.status_code == 404
+    assert Habitacion.objects.get(pk=hid).precio == 40000
 
 
-def test_pf12f_precio_invalido_rechazado(client, encargado_user):
+def test_pf12f_pantallas_muestran_tarifa_unica_sin_campo_precio(client, encargado_user):
     login_enc(client)
-    r = crear_hab(client, "208", 2, precio=0)
-    assert r.status_code == 302 and not Habitacion.objects.filter(numero="208").exists()
+    crear_hab(client, "208", 2)
+    html = client.get("/habitaciones").content.decode()
+    assert 'name="precio"' not in html and "$40.000" in html
+    assert "$40.000" in client.get("/asignar").content.decode()
 
 
 def test_pf12c_fechas_invalidas_rechazadas(client, encargado_user):
@@ -530,6 +532,20 @@ def test_pf22_foto_ilustrada_de_la_habitacion(client, encargado_user):
     assert r.status_code == 200 and r["Content-Type"].startswith("image/svg+xml")
     assert ">905</text>" in svg and ">+2</text>" in svg                  # 4 camas dibujadas + 2 indicadas
     assert not __import__("re").search(r'(x|width)="\d+,\d', svg)     # coordenadas con punto, no coma
+
+
+def test_pf22b_imagen_del_hotel_y_foto_segun_vista(client, encargado_user):
+    """Eval. 4: imagen del hotel en la pantalla de inicio y una foto distinta para vista al mar y a la ciudad."""
+    from django.contrib.staticfiles import finders
+    assert "hotel/hotel_fachada.jpg" in client.get("/login").content.decode()
+    for nombre in ("hotel_fachada.jpg", "habitacion_mar.jpg", "habitacion_ciudad.jpg"):
+        assert finders.find(f"hotel/{nombre}")
+    login_enc(client)
+    crear_hab(client, "301", 2, ori="MAR")
+    crear_hab(client, "302", 2, ori="CIUDAD")
+    html = client.get("/habitaciones").content.decode()
+    assert "hotel/habitacion_mar.jpg" in html and "hotel/habitacion_ciudad.jpg" in html
+    assert "hotel/habitacion_" in client.get("/asignar").content.decode()
 
 
 def test_pf23_ajustar_precios_a_tarifa_estandar(encargado_user):

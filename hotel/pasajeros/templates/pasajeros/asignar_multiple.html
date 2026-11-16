@@ -1,9 +1,9 @@
-{% extends "base.html" %}{% block content %}
+{% extends "base.html" %}{% load static %}{% block content %}
 <span class="db-eyebrow">Asignación de grupo</span>
 <h1 class="db-title" data-split>Asignación de grupo en varias habitaciones</h1>
 <p class="db-subtitle">Use esta opción solo si el grupo supera la capacidad máxima disponible
 (actualmente <strong>{{ max_disp }}</strong>). La suma de capacidades de las habitaciones
-elegidas debe ser igual o mayor al total de pasajeros. Cada habitación cobra su propio precio por pasajero y por noche.</p>
+elegidas debe ser igual o mayor al total de pasajeros. El costo es de <strong>{{ tarifa_clp }}</strong> por pasajero y por noche.</p>
 <form method="post" action="{% url 'pasajeros:asignar_multiple' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
   <div class="row g-3 mb-2">
@@ -27,10 +27,10 @@ elegidas debe ser igual o mayor al total de pasajeros. Cada habitación cobra su
   <div class="db-rooms">
   {% for h in libres %}
     <label class="db-room-card">
-      <img class="db-room-foto" src="{% url 'habitaciones:foto' h.id %}" alt="" width="400" height="250" loading="lazy">
-      <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}" data-num="{{ h.numero }}" aria-label="Habitación {{ h.numero }}">
+      <img class="db-room-foto" src="{% static h.foto_estatica %}" alt="" width="400" height="250" loading="lazy">
+      <input class="form-check-input" type="checkbox" name="habitacion_ids" value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ tarifa }}" data-num="{{ h.numero }}" aria-label="Habitación {{ h.numero }}">
       <div class="db-room">{{ h.numero }}</div>
-      <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }} · ${{ h.precio }}</div>
+      <div class="db-cap">Capacidad {{ h.capacidad }} · {{ h.get_orientacion_display }} · {{ tarifa_clp }}</div>
       <small>Responsable de esta habitación</small>
       <select class="form-select form-select-sm" name="responsable_{{ h.id }}" data-responsable-hab="{{ h.id }}" aria-label="Responsable de la habitación {{ h.numero }}">
         <option value="1">Primer pasajero asignado</option>

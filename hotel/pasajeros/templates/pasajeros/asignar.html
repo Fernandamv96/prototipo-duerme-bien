@@ -1,17 +1,17 @@
-{% extends "base.html" %}{% block content %}
+{% extends "base.html" %}{% load static %}{% block content %}
 <span class="db-eyebrow">Asignación</span>
 <h1 class="db-title" data-split>Asignar habitación</h1>
-<p class="db-subtitle">El costo es el precio de la habitación por pasajero y por noche. Indique la cantidad de pasajeros y complete los datos de cada uno.
+<p class="db-subtitle">El costo es de <strong>{{ tarifa_clp }}</strong> por pasajero y por noche (tarifa única del hotel). Indique la cantidad de pasajeros y complete los datos de cada uno.
 La cantidad puede ser igual o menor a la capacidad de la habitación.</p>
 {% if libres %}
 <form method="post" action="{% url 'pasajeros:asignar' %}" class="db-card db-spot p-4 db-reveal" data-asignacion>
   {% csrf_token %}
   <div class="db-asig-top">
-    <img class="db-hab-foto" src="{% url 'habitaciones:foto' libres.0.id %}" alt="Ilustración de la habitación seleccionada" width="400" height="250" data-foto>
+    <img class="db-hab-foto" src="{% static libres.0.foto_estatica %}" alt="Habitación seleccionada (imagen ilustrativa según su vista)" width="400" height="250" data-foto>
     <div class="row g-3 align-content-start">
       <div class="col-12"><label class="form-label" for="a-hab">Habitación</label>
         <select class="form-select" id="a-hab" name="habitacion_id" required>
-        {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ h.precio }}" data-foto="{% url 'habitaciones:foto' h.id %}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }}, ${{ h.precio }})</option>{% endfor %}
+        {% for h in libres %}<option value="{{ h.id }}" data-cap="{{ h.capacidad }}" data-precio="{{ tarifa }}" data-foto="{% static h.foto_estatica %}">{{ h.numero }} (cap. {{ h.capacidad }}, {{ h.get_orientacion_display }})</option>{% endfor %}
         </select></div>
       <div class="col-sm-4"><label class="form-label" for="a-cant">Cantidad de pasajeros</label>
         <input class="form-control" id="a-cant" type="number" name="cantidad" value="1" min="1" max="30" step="1" required data-cantidad></div>
